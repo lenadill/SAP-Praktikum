@@ -1,0 +1,42 @@
+{
+  "companyId": "acme-123",
+  "companyName": "Acme GmbH",
+  "currency": "EUR",
+  "createdAt": "2026-02-17T12:00:00.000Z",
+  "incomes": [
+    {
+      "id": "inc_001",
+      "timestamp": "2026-02-17T09:12:34.123Z",
+      "amount": 1250.5,
+      "description": "Consulting fee",
+      "category": "Services",
+      "meta": { "invoice": "INV-2026-001" }
+    },
+    {
+      "id": "inc_002",
+      "timestamp": "2026-02-15T10:00:00.000Z",
+      "amount": 300.0,
+      "description": "Product sale",
+      "category": "Sales",
+      "meta": { "order": "ORD-1002" }
+    }
+  ],
+  "expenses": [
+    {
+      "id": "exp_001",
+      "timestamp": "2026-02-16T14:20:00.000Z",
+      "amount": 200.0,
+      "description": "Office supplies",
+      "category": "Office",
+      "meta": { "receipt": "RCPT-034" }
+    },
+    {
+      "id": "exp_002",
+      "timestamp": "2026-02-10T08:30:00.000Z",
+      "amount": 450.75,
+      "description": "Marketing campaign",
+      "category": "Marketing",
+      "meta": { "campaign": "FB-2026-02" }
+    }
+  ]
+}
