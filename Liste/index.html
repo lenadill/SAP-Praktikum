@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Finances</title>
+
+</head>
+<body>
+    <h1>Finances</h1>
+    <button id="openForm">+</button>
+    <div id="formContainer" style="display: none;">
+        <form>
+            <input type="text" placeholder="Betrag">
+            <button type="submit">Absenden</button>
+        </form>
+    </div> 
+    <table>
+        <tr>
+            <th>Betrag</th>
+            <th>Kategorie</th>
+            <th>Datum</th>
+        </tr>
+        <tr>
+            <td>500</td>
+            <td>Essen</td>
+            <td>12.2.2026</td>
+        </tr>
+        <tr>
+        <td>2000</td>
+        <td>Gehalt</td>
+        <td>17.2.2026</td>
+        </tr>
+    </table>
+    <script src="script.js"></script>
+</body>
+</html>
