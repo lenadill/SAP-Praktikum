@@ -9,10 +9,16 @@
 </head>
 <body>
     <h1>Finances</h1>
-    <button>+</button>  
+    <button id="openForm">+</button>
+    <div id="formContainer" style="display: none;">
+        <form>
+            <input type="text" placeholder="Betrag">
+            <button type="submit">Absenden</button>
+        </form>
+    </div> 
     <table>
         <tr>
-            <th>Ausgabenhöhe</th>
+            <th>Betrag</th>
             <th>Kategorie</th>
             <th>Datum</th>
         </tr>
@@ -26,6 +32,7 @@
         <td>Gehalt</td>
         <td>17.2.2026</td>
         </tr>
-</table>
+    </table>
+    <script src="script.js"></script>
 </body>
 </html>
