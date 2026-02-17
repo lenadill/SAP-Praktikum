@@ -1,11 +1,71 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Graphen</title>
-</head>
-<body>
+<!DOCTYPE html>     
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Finance Dashboard</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <!--heading -->
+        <div class="navbar">
+            <div class="logo">Finance Dashboard</div>
+        </div>
 
-<h1>Graph</h1>
+        <!-- wichtigsste Informationen-->
+            <div class="information">
+                <nav class="nav-menu">
+                        <div class="nav-item active">
+                            <span class="nav-item-top">Gesamtumsatz</span>
+                            <br>
+                            <div class="zahlenwert"> €00000000</div>
+                        </div>
 
-</body>
+                        <div class="nav-item">
+                            <span class="nav-item-top">Gesamtausgaben</span>
+                            <br>
+                            <div class="zahlenwert"> €00000000</div>
+                        </div>
+
+                        <div class="nav-item">
+                            <span class="nav-item-top">Gesamtgewinn</span>
+                            <br>
+                            <div class="zahlenwert"> €00000000</div>
+                        </div>
+                </nav>
+            </div>
+
+    <div class="second-group">       
+        <!-- Diagramm_Umsatz-Ausgaben-Gewinn -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        
+        <!-- Auflistung Auftraggeber-->
+        <div class="auftraggeber">
+            <h2>Top Auftraggeber</h2>
+            <ul>
+                <li>Auftraggeber 1 - €00000000</li>
+                <li>Auftraggeber 2 - €00000000</li>
+                <li>Auftraggeber 3 - €00000000</li>
+                <li>Auftraggeber 4 - €00000000</li>
+                <li>Auftraggeber 5 - €00000000</li>
+            </ul>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+        <script src="./chart1.js"></script>
+        <script src="./chart2.js"></script>
+    </body>
 </html>
