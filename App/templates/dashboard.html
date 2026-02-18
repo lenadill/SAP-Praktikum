@@ -55,19 +55,14 @@
             <!-- Chart Bereich -->
             <section class="chart-area">
                 <div class="chart-box">
-                    <canvas id="mainChart" width="900" height="260"></canvas>
+                    <canvas id="myChart"></canvas>
                 </div>
                 <div class="chart-controls">
-                    <select class="chart-select">
-                        <option>Week</option>
-                        <option>Month</option>
-                        <option>Year</option>
+                    <select class="chart-select" id="chartTimeframeSelect">
+                        <option value="week">Week</option>
+                        <option value="month">Month</option>
+                        <option value="year" selected>Year</option>
                     </select>
-                    <ul class="chart-legend">
-                        <li class="rev">Revenue</li>
-                        <li class="exp">Expenses</li>
-                        <li class="sur">Surplus</li>
-                    </ul>
                 </div>
             </section>
 
@@ -94,11 +89,12 @@
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../static/js/dashboard.js"></script>
-    <button class="diamond-btn" title="Diamond action" aria-label="Diamond">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M12 2l5 7-5 7-5-7 5-7zm0 2.5L9.6 9h4.8L12 4.5z" />
-        </svg>
+    <script src="../static/js/ai-chat.js"></script>
+    <script src="../static/js/graph.js"></script>
+    <button class="diamond-btn" title="KI-Assistent öffnen" aria-label="KI-Chat öffnen">
+        <img src="../assets/icons/jules_logo.png" alt="KI-Assistent">
     </button>
 </body>
 </html>
