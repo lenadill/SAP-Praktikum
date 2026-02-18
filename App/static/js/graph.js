@@ -15,6 +15,27 @@ document.addEventListener('DOMContentLoaded', function() {
       labels: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
       revenue: [9000, 8000, 9000, 10000, 10000, 9000, 11000, 5000, 12000, 10000, 10000, 15000],
       outgoings: [8000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 12000],
+
+    },
+    '2025Q1': {
+      labels: ['Januar', 'Februar', 'März'],
+      revenue: [9000, 8000, 9000],
+      outgoings: [8000, 6000, 6000],
+    },
+    '2025Q2': {
+      labels: ['April', 'Mai', 'Juni'],
+      revenue: [10000, 10000, 9000],
+      outgoings: [6000, 6000, 6000],
+    },
+    '2025Q3': {
+      labels: ['Juli', 'August', 'September'],
+      revenue: [11000, 5000, 12000],
+      outgoings: [6000, 6000, 6000],
+    },
+    '2025Q4': {
+      labels: ['Oktober', 'November', 'Dezember'],
+      revenue: [10000, 10000, 15000],
+      outgoings: [6000, 6000, 12000],
     }
   };
 
