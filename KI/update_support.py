@@ -1,4 +1,8 @@
-<!DOCTYPE html>
+import os
+
+support_path = "../App/templates/support.html"
+
+new_content = """<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -163,3 +167,7 @@
     </script>
 </body>
 </html>
+"""
+
+with open(support_path, "w", encoding="utf-8") as f:
+    f.write(new_content)

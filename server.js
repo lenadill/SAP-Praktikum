@@ -64,9 +64,13 @@ app.post('/api/chat', async (req, res) => {
 
     const summary = getDatabaseSummary();
     const clientMessages = req.body.messages || [];
-    const systemContent = "Du bist Joule, ein SAP-Finanz-Assistent. " +
+    const systemContent = "Du bist Joule, ein SAP-Finanz-Assistent und Support-Spezialist. " +
                          "Hier sind die aktuellen Finanzdaten des Nutzers:\n" + summary +
-                         "\nBeantworte Fragen basierend auf diesen Daten. Sei präzise und freundlich.";
+                         "\nZusätzlich zum Finanz-Kontext bist du Experte für den Support: " +
+                     "\n- Bei Fragen zur Datensicherheit: Betone SAP-Verschlüsselungsstandards." +
+                     "\n- Bei Fragen zu Reports: Erkläre, dass diese im Dashboard exportiert werden können." +
+                     "\n- Bei technischen Problemen: Verweise auf das Kontaktformular auf der Support-Seite." +
+                     "\nBeantworte Fragen basierend auf diesen Daten. Sei präzise und freundlich.";
     
     const messages = [{ role: "system", content: systemContent }, ...clientMessages.filter(m => m.role !== 'system')];
 
