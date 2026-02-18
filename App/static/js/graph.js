@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     datasets: [
                         { label: 'Revenue', data: data.revenue, borderColor: '#6f42c1', tension: 0.4 },
                         { label: 'Expenses', data: data.outgoings, borderColor: '#e74c3c', tension: 0.4 },
-                        { label: 'Surplus', data: data.labels.map((_, i) => data.revenue[i] - data.outgoings[i]), borderColor: '#27ae60', tension: 0.4 }
+                        { label: 'Surplus', data: data.labels.map((_, i) => data.revenue[i] - data.outgoings[i]), borderColor: '#27ae60', tension: 0.4, borderWidth: 3, fill: false, borderDash: [] }
                     ]
                 },
                 options: {
@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             chart.data.datasets[0].data = data.revenue;
             chart.data.datasets[1].data = data.outgoings;
             chart.data.datasets[2].data = data.labels.map((_, i) => data.revenue[i] - data.outgoings[i]);
+            
+            // Surplus Style forcieren
+            chart.data.datasets[2].borderColor = '#27ae60';
+            chart.data.datasets[2].borderWidth = 3;
+            chart.data.datasets[2].borderDash = [];
+            chart.data.datasets[2].fill = false;
+
             chart.update();
         }
     }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Clarity - Dashboard</title>
     <link rel="stylesheet" href="../static/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
@@ -11,6 +11,44 @@
             window.location.href = 'login.html';
         }
     </script>
+
+<style>
+    .context-menu {
+        display: none;
+        position: absolute;
+        z-index: 10000;
+        background: white !important;
+        border: 1px solid #ddd !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+        min-width: 140px;
+        padding: 5px 0 !important;
+    }
+    .context-menu-list {
+        list-style: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .context-menu-list li {
+        padding: 10px 15px !important;
+        cursor: pointer !important;
+        font-size: 14px !important;
+        color: #333 !important;
+        list-style-type: none !important;
+        transition: background 0.2s;
+    }
+    .context-menu-list li:hover {
+        background: #f0f7ff !important;
+        color: #0070d2 !important;
+    }
+    .context-menu-list li.delete-opt {
+        color: #d32f2f !important;
+        border-top: 1px solid #eee !important;
+    }
+    .context-menu-list li.delete-opt:hover {
+        background: #fff0f0 !important;
+    }
+</style>
 </head>
 <body data-require-auth="true">
     <div class="container">
@@ -55,7 +93,14 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="header">
-                <h1>Welcome to the Dashboard</h1>
+                <h1>Clarity Dashboard</h1>
+                <div class="header-right">
+                    <div class="search-container">
+                        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="globalSearch" class="search-input" placeholder="Search transactions or date" aria-label="Search">
+                        <span id="clearSearch" class="search-clear" title="Clear search">&times;</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Chart Section -->
@@ -154,15 +199,25 @@
                     <thead>
                         <tr>
                             <th>Category</th>
+                            <th>Sender</th>
+                            <th>Recipient</th>
                             <th>Amount</th>
                             <th>Date</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td colspan="3" class="empty">No entries</td></tr>
+                        <tr><td colspan="5" class="empty">No entries</td></tr>
                     </tbody>
                 </table>
             </section>
+
+            <footer class="app-footer">
+                <p>&copy; 2026 Clarity - A SAP Financial Tracker</p>
+                <div class="footer-links">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Impressum</a>
+                </div>
+            </footer>
         </main>
     </div>
 
@@ -170,6 +225,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../static/js/dashboard.js"></script>
     <script src="../static/js/ai-chat.js"></script>
+    <script src="../static/js/data-manager.js"></script>
     <script src="../static/js/dashboard-metrics.js"></script>
     
     <button class="diamond-btn" title="Open AI Assistant" aria-label="Open AI Chat">
@@ -205,9 +261,22 @@
                         <option value="Miscellaneous">Miscellaneous</option>
                     </select>
                 </div>
+                
+                <div class="form-group">
+                    <label>Sender</label>
+                    <input type="text" id="tSender" placeholder="Who sends the money?">
+                </div>
+                <div class="form-group">
+                    <label>Recipient</label>
+                    <input type="text" id="tEmpfaenger" placeholder="Who receives the money?">
+                </div>
                 <div class="form-group">
                     <label>Amount (€)</label>
                     <input type="number" id="tWert" step="0.01" placeholder="e.g., 12.50" required>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="tDate" required>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-cancel" id="btnCancel">Cancel</button>
@@ -220,15 +289,12 @@
 <script src="../static/js/transactions.js"></script>
 
     <!-- Context Menu -->
-    <div id="contextMenu" class="context-menu" style="display:none; position:fixed; z-index:2000;">
+    <div id="contextMenu" class="context-menu">
         <ul class="context-menu-list">
+            <li id="cmAskJoule" style="color: #6f42c1; font-weight: bold; border-bottom: 1px solid #eee;">Ask Joule</li>
             <li id="cmEdit">Edit</li>
-            <li id="cmDelete" class="delete-opt" style="color:red; border-top:1px solid #eee;">Delete</li>
+            <li id="cmDelete" class="delete-opt">Delete</li>
         </ul>
     </div>
-
-    <script src="../static/js/data-manager.js"></script>
-    <script src="../static/js/graph.js"></script>
-    <script src="../static/js/cards-data.js"></script>
 </body>
 </html>

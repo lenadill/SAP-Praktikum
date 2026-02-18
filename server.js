@@ -90,8 +90,47 @@ async function getDatabaseSummary() {
 app.use(express.json());
 
 // --- API für Transaktionen ---
-app.get('/api/transactions', (req, res) => {
-    db.all("SELECT * FROM transactions ORDER BY timestamp DESC", [], (err, rows) => {
+app.get("/api/transactions", (req, res) => {
+    const limit = parseInt(req.query.limit) || 25;
+    const offset = parseInt(req.query.offset) || 0;
+    const category = req.query.category;
+    const search = req.query.search;
+    const date = req.query.date;
+    const sortBy = req.query.sort || "timestamp";
+    const order = req.query.order || "DESC";
+
+    const allowedColumns = ["kategorie", "sender", "empfaenger", "wert", "timestamp", "name"];
+    const finalSort = allowedColumns.includes(sortBy) ? sortBy : "timestamp";
+    const finalOrder = (order.toUpperCase() === "ASC") ? "ASC" : "DESC";
+
+    let query = "SELECT * FROM transactions";
+    let whereClauses = [];
+    let params = [];
+
+    if (category && category !== "all") {
+        whereClauses.push("kategorie = ?");
+        params.push(category);
+    }
+
+    if (date) {
+        whereClauses.push("timestamp LIKE ?");
+        params.push(`${date}%`);
+    }
+
+    if (search) {
+        whereClauses.push("(name LIKE ? OR sender LIKE ? OR empfaenger LIKE ? OR kategorie LIKE ? OR timestamp LIKE ?)");
+        const sp = `%${search}%`;
+        params.push(sp, sp, sp, sp, sp);
+    }
+
+    if (whereClauses.length > 0) {
+        query += " WHERE " + whereClauses.join(" AND ");
+    }
+
+    query += ` ORDER BY ${finalSort} ${finalOrder} LIMIT ? OFFSET ?`;
+    params.push(limit, offset);
+
+    db.all(query, params, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ eintraege: rows });
     });
@@ -141,29 +180,34 @@ app.post('/api/chat', async (req, res) => {
     const clientMessages = req.body.messages || [];
     
     // System Prompt für Joule mit erweitertem Kontext
-    const systemContent = "Du bist Joule, ein intelligenter SAP-Finanz-Assistent. " +
-                         "Du hast Zugriff auf die vollständigen Finanzdaten des Nutzers.\n\n" +
-                         summary + 
-                         "\n\nDeine Aufgaben:" +
-                         "\n1. Analysiere die Daten präzise (Summen, Trends, Vergleiche)." +
-                         "\n2. Beantworte Fragen wie 'Wie lief Q4 2024?' indem du die Monats-Statistiken kombinierst." +
-                         "\n3. Wenn nach Details gefragt wird (z.B. 'Wer hat mir Geld überwiesen?'), nutze die Transaktions-Liste." +
-                         "\n4. Formatiere deine Antworten übersichtlich (Markdown, Listen, fettgedruckte Zahlen)." +
-                         "\nBeantworte Fragen basierend auf diesen Daten. Sei hilfreich, präzise und freundlich.";
-    
-    const messages = [{ role: "system", content: systemContent }, ...clientMessages.filter(m => m.role !== 'system')];
+    const systemContent = "Du bist Joule, ein professioneller SAP-Finanz-Assistent.\n" +
+                         "### BERATER-ROLLE: Wenn der Nutzer nach Tipps oder Beratung fragt, agiere als Personal Finance Advisor. Gib praktische Tipps zu Budgetierung, Sparen und Investitionen basierend auf den vorliegenden Daten. Fördere verantwortungsbewusstes Management.\n" +
+                         "### AKTIONEN:\n" +
+                         "1. SUCHE: QUERY:{\"category\": \"Cat\", \"name\": \"Term\", \"date\": \"YYYY-MM-DD\"}\n" +
+                         "2. SPEICHERN: ADD_TRANSACTION:{\"name\": \"Info\", \"kategorie\": \"Cat\", \"wert\": -10.0, \"sender\": \"SAP\", \"empfaenger\": \"Rec\"}\n\n" +
+                         "### STRIKTE REGELN:\n" +
+                         "- Bei Aktionen: NUR den technischen Befehl ausgeben (QUERY:... oder ADD_TRANSACTION:...). Kein Text davor oder danach.\n" +
+                         "- Erwähne niemals die Worte \"QUERY\" oder \"ADD_TRANSACTION\" gegenüber dem Nutzer.\n" +
+                         "- Nenne Beträge nur auf direkte Nachfrage.\n" +
+                         "- Antworte extrem kurz (max. 2 Sätze) und professionell.";
+      const messages = [{ role: "system", content: systemContent }, ...clientMessages.filter(m => m.role !== "system")];
 
-    const resp = await fetchFn('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
+      const resp = await fetchFn("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+
             'Authorization': 'Bearer ' + GROQ_KEY,
             'User-Agent':    'node-groq-proxy/1.0'
         },
         body: JSON.stringify({ model: GROQ_MODEL, messages })
     });
+      console.log("Chat Request Messages:", JSON.stringify(messages, null, 2));
+
 
     const data = await resp.json();
+      console.log("Chat Response:", JSON.stringify(data, null, 2));
+
     res.status(resp.status).json(data);
   } catch (err) {
     console.error('Proxy error', err);

@@ -1,9 +1,8 @@
-window.DataManager = (function() {
+content = r"""window.DataManager = (function() {
     let transactions = [];
 
     async function fetchTransactions() {
         try {
-            // Fetch a high limit to ensure the graph has all data points
             const res = await fetch('/api/transactions?limit=10000');
             const data = await res.json();
             transactions = data.eintraege || [];
@@ -21,6 +20,7 @@ window.DataManager = (function() {
         const nowMonth = now.getMonth();
         
         let targetYear = nowYear;
+        // Wenn timeframe eine Jahreszahl ist (z.B. "2025")
         if (/^\d{4}$/.test(timeframe)) {
             targetYear = parseInt(timeframe);
         }
@@ -38,12 +38,11 @@ window.DataManager = (function() {
                 const d = new Date(t.timestamp);
                 if (d.getFullYear() === targetYear) {
                     const month = d.getMonth();
-                    const val = parseFloat(t.wert) || 0;
+                    const val = Number(t.wert) || 0;
                     if (val >= 0) revenue[month] += val;
                     else outgoings[month] += Math.abs(val);
                 }
             });
-            console.log(`Daten für Jahr ${targetYear}:`, {revenue, outgoings});
         } 
         else if (timeframe === 'month') {
             labels = ['Woche 1', 'Woche 2', 'Woche 3', 'Woche 4', 'Woche 5'];
@@ -54,7 +53,7 @@ window.DataManager = (function() {
                 const d = new Date(t.timestamp);
                 if (d.getMonth() === nowMonth && d.getFullYear() === nowYear) {
                     const week = Math.min(4, Math.floor((d.getDate() - 1) / 7));
-                    const val = parseFloat(t.wert) || 0;
+                    const val = Number(t.wert) || 0;
                     if (val >= 0) revenue[week] += val;
                     else outgoings[week] += Math.abs(val);
                 }
@@ -75,7 +74,7 @@ window.DataManager = (function() {
                 const d = new Date(t.timestamp);
                 if (d >= startOfWeek) {
                     const dayIdx = (d.getDay() + 6) % 7;
-                    const val = parseFloat(t.wert) || 0;
+                    const val = Number(t.wert) || 0;
                     if (val >= 0) revenue[dayIdx] += val;
                     else outgoings[dayIdx] += Math.abs(val);
                 }
@@ -95,7 +94,7 @@ window.DataManager = (function() {
                     const m = d.getMonth();
                     if (m >= startMonth && m < startMonth + 3) {
                         const idx = m - startMonth;
-                        const val = parseFloat(t.wert) || 0;
+                        const val = Number(t.wert) || 0;
                         if (val >= 0) revenue[idx] += val;
                         else outgoings[idx] += Math.abs(val);
                     }
@@ -106,25 +105,11 @@ window.DataManager = (function() {
         return { labels, revenue, outgoings };
     }
 
-    function searchTransactions(criteria) {
-        return transactions.filter(t => {
-            let match = true;
-            if (criteria.category && t.kategorie.toLowerCase() !== criteria.category.toLowerCase()) match = false;
-            if (criteria.name && !t.name.toLowerCase().includes(criteria.name.toLowerCase())) match = false;
-            if (criteria.minAmount && Math.abs(parseFloat(t.wert)) < criteria.minAmount) match = false;
-            if (criteria.maxAmount && Math.abs(parseFloat(t.wert)) > criteria.maxAmount) match = false;
-            return match;
-        });
-    }
-
-    function getAllTransactions() {
-        return transactions;
-    }
-
     return {
         fetchTransactions,
-        getAggregatedData,
-        searchTransactions,
-        getAllTransactions
+        getAggregatedData
     };
-})();
+})();"""
+
+with open("../App/static/js/data-manager.js", "w", encoding="utf-8") as f:
+    f.write(content)

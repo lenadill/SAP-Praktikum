@@ -1,9 +1,8 @@
-window.DataManager = (function() {
+content = r"""window.DataManager = (function() {
     let transactions = [];
 
     async function fetchTransactions() {
         try {
-            // Fetch a high limit to ensure the graph has all data points
             const res = await fetch('/api/transactions?limit=10000');
             const data = await res.json();
             transactions = data.eintraege || [];
@@ -106,25 +105,11 @@ window.DataManager = (function() {
         return { labels, revenue, outgoings };
     }
 
-    function searchTransactions(criteria) {
-        return transactions.filter(t => {
-            let match = true;
-            if (criteria.category && t.kategorie.toLowerCase() !== criteria.category.toLowerCase()) match = false;
-            if (criteria.name && !t.name.toLowerCase().includes(criteria.name.toLowerCase())) match = false;
-            if (criteria.minAmount && Math.abs(parseFloat(t.wert)) < criteria.minAmount) match = false;
-            if (criteria.maxAmount && Math.abs(parseFloat(t.wert)) > criteria.maxAmount) match = false;
-            return match;
-        });
-    }
-
-    function getAllTransactions() {
-        return transactions;
-    }
-
     return {
         fetchTransactions,
-        getAggregatedData,
-        searchTransactions,
-        getAllTransactions
+        getAggregatedData
     };
-})();
+})();"""
+
+with open("../App/static/js/data-manager.js", "w", encoding="utf-8") as f:
+    f.write(content)

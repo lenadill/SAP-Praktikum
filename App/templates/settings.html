@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Settings</title>
+	<title>Clarity - Settings</title>
 	<link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body>
@@ -47,7 +47,14 @@
 
 		<main class="main-content">
 			<div class="header">
-				<h1>Settings</h1>
+				<h1>Clarity Settings</h1>
+                <div class="header-right">
+                    <div class="search-container">
+                        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="settingsSearch" class="search-input" placeholder="Search settings" aria-label="Search">
+                        <span id="clearSettingsSearch" class="search-clear" title="Clear search">&times;</span>
+                    </div>
+                </div>
 			</div>
 
 			<div class="content-section">
@@ -163,11 +170,20 @@
                     </div>
                 </div>
 			</div>
+
+            <footer class="app-footer">
+                <p>&copy; 2026 Clarity - A SAP Financial Tracker</p>
+                <div class="footer-links">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Impressum</a>
+                </div>
+            </footer>
 		</main>
 	</div>
 
 	<script src="../static/js/dashboard.js"></script>
     <script src="../static/js/ai-chat.js"></script>
+    <script src="../static/js/settings-search.js"></script>
     <button class="diamond-btn" title="Open AI Assistant" aria-label="Open AI Chat">
         <img src="../assets/icons/joule_logo.png" alt="AI Assistant">
     </button>
