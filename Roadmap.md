@@ -1,6 +1,6 @@
 # Roadmap Finanztracker
 
-## Jules, dein Ki Assistent
+## Joule, dein Ki Assistent
 - hilft dir einen Überblick über deine Finanzen zu behalten
 - schaut voraus und gibt dir Prognosen für die Zukunft
 
