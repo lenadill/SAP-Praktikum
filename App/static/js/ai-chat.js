@@ -115,7 +115,13 @@
 
         const bubble = document.createElement('div');
         bubble.className = 'ai-message-bubble';
-        bubble.textContent = text;
+        
+        // Markdown-Unterstützung für Bot-Antworten
+        if (role === 'bot' && typeof marked !== 'undefined') {
+            bubble.innerHTML = marked.parse(text);
+        } else {
+            bubble.textContent = text;
+        }
 
         wrapper.appendChild(avatar);
         wrapper.appendChild(bubble);

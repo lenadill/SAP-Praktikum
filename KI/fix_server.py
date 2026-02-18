@@ -1,4 +1,4 @@
-require('dotenv').config();
+server_content = """require('dotenv').config();
 const express = require('express');
 const path    = require('path');
 const fs      = require('fs');
@@ -37,15 +37,15 @@ function getDatabaseSummary() {
             categories[cat] = (categories[cat] || 0) + wert;
         });
 
-        let summary = "Aktuelle Finanzübersicht:\n";
-        summary += "- Gesamtsaldo: " + totalBalance.toFixed(2) + "€\n";
-        summary += "- Kategorien (Summen):\n";
+        let summary = "Aktuelle Finanzübersicht:\\n";
+        summary += "- Gesamtsaldo: " + totalBalance.toFixed(2) + "€\\n";
+        summary += "- Kategorien (Summen):\\n";
         for (const cat in categories) {
-            summary += "  * " + cat + ": " + categories[cat].toFixed(2) + "€\n";
+            summary += "  * " + cat + ": " + categories[cat].toFixed(2) + "€\\n";
         }
-        summary += "- Letzte 10 Transaktionen:\n";
+        summary += "- Letzte 10 Transaktionen:\\n";
         recent.forEach(r => {
-            summary += "  * " + r.timestamp.split('T')[0] + ": " + r.name + " (" + r.wert + "€)\n";
+            summary += "  * " + r.timestamp.split('T')[0] + ": " + r.name + " (" + r.wert + "€)\\n";
         });
         return summary;
     } catch (err) {
@@ -65,8 +65,8 @@ app.post('/api/chat', async (req, res) => {
     const summary = getDatabaseSummary();
     const clientMessages = req.body.messages || [];
     const systemContent = "Du bist Joule, ein SAP-Finanz-Assistent. " +
-                         "Hier sind die aktuellen Finanzdaten des Nutzers:\n" + summary +
-                         "\nBeantworte Fragen basierend auf diesen Daten. Sei präzise und freundlich.";
+                         "Hier sind die aktuellen Finanzdaten des Nutzers:\\n" + summary +
+                         "\\nBeantworte Fragen basierend auf diesen Daten. Sei präzise und freundlich.";
     
     const messages = [{ role: "system", content: systemContent }, ...clientMessages.filter(m => m.role !== 'system')];
 
@@ -90,3 +90,7 @@ app.post('/api/chat', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Proxy server listening on ' + PORT));
+"""
+
+with open("../server.js", "w", encoding="utf-8") as f:
+    f.write(server_content)

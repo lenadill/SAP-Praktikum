@@ -321,7 +321,7 @@ body {
 /* Diamond quick action button */
 .diamond-btn {
     position: fixed;
-    right: 100px; /* left of chat button */
+    right: 34px;
     bottom: 34px;
     width: 56px;
     height: 56px;
@@ -338,7 +338,7 @@ body {
 .diamond-btn img { width: 32px; height: 32px; object-fit: contain; filter: brightness(0) invert(1); }
 
 @media (max-width: 480px) {
-    .diamond-btn { right: 88px; width: 48px; height: 48px; }
+    .diamond-btn { right: 34px; bottom: 34px; width: 48px; height: 48px; }
     .diamond-btn svg { width: 20px; height: 20px; }
 }
 
@@ -666,4 +666,28 @@ body {
   width: 33.8%;
   height: 100%;
   border-radius: 0.25rem;
+}
+
+/* Markdown Styling für AI Chat Bubbles */
+.ai-message-bubble ul, .ai-message-bubble ol {
+    padding-left: 20px;
+    margin: 5px 0;
+}
+.ai-message-bubble li {
+    margin-bottom: 3px;
+}
+.ai-message-bubble p {
+    margin: 5px 0;
+}
+.ai-message-bubble p:first-child {
+    margin-top: 0;
+}
+.ai-message-bubble p:last-child {
+    margin-bottom: 0;
+}
+.ai-message-bubble code {
+    background: rgba(0,0,0,0.1);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: monospace;
 }

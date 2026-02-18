@@ -105,3 +105,23 @@ Node.js v24.11.0
 Proxy server listening on 3000
 Proxy server listening on 3000
 Proxy server listening on 3000
+/Users/maximilian/Documents/Code/SAP-Winterpraktikum/SAP-Praktikum/server.js:3
+const path    = require('path');\nconst fs      = require('fs');
+                                ^
+
+SyntaxError: Invalid or unexpected token
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+
+Node.js v24.11.0
+Proxy server listening on 3000
+Proxy server listening on 3000
+Proxy server listening on 3000
+Proxy server listening on 3000
