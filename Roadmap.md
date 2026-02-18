@@ -8,4 +8,3 @@
 - Abrechnungen planen
 - Support für mehr Währungen
 - Eigene Konten für Mitarbeiter, so das jeder nur das sieht was er soll und braucht
-- 
