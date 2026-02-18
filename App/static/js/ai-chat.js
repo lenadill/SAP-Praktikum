@@ -1,23 +1,35 @@
 (function () {
+    // ── API-Proxy-Konfiguration (sicher: kein Key im Frontend) ───────────────
+    const API_PROXY = '/api/chat'; // Serverseitiger Groq-Proxy
+
+    const SYSTEM_PROMPT =
+        'Du bist Joule, ein freundlicher KI-Assistent für ein SAP-Finanz-Dashboard. ' +
+        'Beantworte Fragen präzise und auf Deutsch, sofern der Nutzer nicht eine andere Sprache verwendet.' +
+        'Halte dich kurz kompakt.';
+
+    // Gesprächsverlauf für Multi-Turn-Kontext
+    const chatHistory = [];
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Panel-HTML in die Seite injizieren
     document.body.insertAdjacentHTML('beforeend', `
         <div class="ai-chat-overlay" id="aiChatOverlay"></div>
-        <aside class="ai-chat-panel" id="aiChatPanel" aria-label="KI-Assistent">
+        <aside class="ai-chat-panel" id="aiChatPanel" aria-label="Joule">
             <div class="ai-chat-header">
                 <div class="ai-chat-title">
                     <span class="ai-chat-icon">
-                        <img src="../assets/icons/jules_logo.png" alt="KI-Assistent">
+                        <img src="../assets/icons/joule_logo.png" alt="KI-Assistent">
                     </span>
-                    <span>KI-Assistent</span>
+                    <span>Joule</span>
                 </div>
                 <button class="ai-chat-close" id="aiChatClose" aria-label="Schließen">&times;</button>
             </div>
 
             <div class="ai-chat-messages" id="aiChatMessages">
                 <div class="ai-message ai-message--bot">
-                    <div class="ai-message-avatar">KI</div>
+                    <div class="ai-message-avatar">J</div>
                     <div class="ai-message-bubble">
-                        Hallo! Ich bin dein KI-Assistent. Wie kann ich dir heute helfen?
+                        Hallo! Ich bin Joule. Wie kann ich dir heute helfen?
                     </div>
                 </div>
             </div>
@@ -99,7 +111,7 @@
 
         const avatar = document.createElement('div');
         avatar.className = 'ai-message-avatar';
-        avatar.textContent = role === 'user' ? 'Du' : 'KI';
+        avatar.textContent = role === 'user' ? 'Du' : 'J';
 
         const bubble = document.createElement('div');
         bubble.className = 'ai-message-bubble';
@@ -117,7 +129,7 @@
 
         const avatar = document.createElement('div');
         avatar.className = 'ai-message-avatar';
-        avatar.textContent = 'KI';
+        avatar.textContent = 'J';
 
         const bubble = document.createElement('div');
         bubble.className = 'ai-message-bubble';
@@ -141,12 +153,55 @@
         appendMessage(text, 'user');
         input.value = '';
         input.style.height = 'auto';
+        sendBtn.disabled = true;
 
-        // Platzhalter-Antwort – hier später echte KI-API einbinden
+        // Nachricht zum Verlauf hinzufügen (OpenAI-Format)
+        chatHistory.push({ role: 'user', content: text });
+
         const typingEl = showTyping();
-        setTimeout(function () {
+
+        // System-Prompt + Verlauf als messages-Array
+        const messages = [{ role: 'system', content: SYSTEM_PROMPT }].concat(chatHistory);
+
+        fetch(API_PROXY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: messages })
+        })
+        .then(function (res) {
+            return res.json().then(function (data) {
+                return { status: res.status, data: data };
+            });
+        })
+        .then(function (result) {
+            const status = result.status;
+            const data   = result.data;
+
+            if (status >= 400) {
+                const msg = (data.error && (data.error.message || data.error))
+                    ? (data.error.message || data.error)
+                    : 'Fehler ' + status;
+                chatHistory.pop();
+                typingEl.remove();
+                appendMessage('Fehler: ' + msg, 'bot');
+                return;
+            }
+            if (!data.choices || !data.choices[0]) {
+                typingEl.remove();
+                appendMessage('Keine Antwort von der KI erhalten.', 'bot');
+                return;
+            }
+            const reply = data.choices[0].message.content;
+            chatHistory.push({ role: 'assistant', content: reply });
             typingEl.remove();
-            appendMessage('Das ist eine Platzhalter-Antwort. Hier kann eine echte KI-API eingebunden werden.', 'bot');
-        }, 1200);
+            appendMessage(reply, 'bot');
+        })
+        .catch(function () {
+            typingEl.remove();
+            appendMessage('Verbindungsfehler. Läuft der Server auf localhost:3000?', 'bot');
+        })
+        .finally(function () {
+            sendBtn.disabled = false;
+        });
     }
 })();
