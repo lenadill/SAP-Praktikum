@@ -1049,6 +1049,13 @@
       "kategorie": "Food",
       "wert": 15.45,
       "timestamp": "2026-02-18T12:56:24.051Z"
+    },
+    {
+      "id": 1771419552737,
+      "name": "Essen",
+      "kategorie": "Food",
+      "wert": 2323,
+      "timestamp": "2026-02-18T12:59:12.737Z"
     }
   ]
 }

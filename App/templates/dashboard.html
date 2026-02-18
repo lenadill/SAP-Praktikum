@@ -65,13 +65,25 @@
                 </div>
                 <div class="chart-controls">
                     <select class="chart-select" id="chartTimeframeSelect">
-                        <option value="week">Week</option>
-                        <option value="month">Month</option>
-                        <option value="year" selected>Year</option>
-                        <option value="2025Q1">2025 - Q1</option>
-                        <option value="2025Q2">2025 - Q2</option>
-                        <option value="2025Q3">2025 - Q3</option>
-                        <option value="2025Q4">2025 - Q4</option>
+                        <optgroup label="Relative Periods">
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="last_month">Last Month</option>
+                            <option value="year" selected>This Year (2026)</option>
+                            <option value="last_year">Last Year (2025)</option>
+                        </optgroup>
+                        <optgroup label="2026 Quarters">
+                            <option value="2026Q1">2026 - Q1</option>
+                            <option value="2026Q2">2026 - Q2</option>
+                            <option value="2026Q3">2026 - Q3</option>
+                            <option value="2026Q4">2026 - Q4</option>
+                        </optgroup>
+                        <optgroup label="2025 Quarters">
+                            <option value="2025Q1">2025 - Q1</option>
+                            <option value="2025Q2">2025 - Q2</option>
+                            <option value="2025Q3">2025 - Q3</option>
+                            <option value="2025Q4">2025 - Q4</option>
+                        </optgroup>
                     </select>
 
                      <!-- Revenue Card -->
@@ -144,7 +156,6 @@
                             <th>Category</th>
                             <th>Amount</th>
                             <th>Date</th>
-                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -159,14 +170,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../static/js/dashboard.js"></script>
     <script src="../static/js/ai-chat.js"></script>
-    <script src="../static/js/graph.js"></script>
-    <script src="../static/js/cards-data.js"></script>
+    <script src="../static/js/dashboard-metrics.js"></script>
     
     <button class="diamond-btn" title="Open AI Assistant" aria-label="Open AI Chat">
         <img src="../assets/icons/joule_logo.png" alt="AI Assistant">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M12 2l5 7-5 7-5-7 5-7zm0 2.5L9.6 9h4.8L12 4.5z" />
-            </svg>
     </button>
 
     <!-- Modal for new transaction -->
@@ -174,6 +181,14 @@
         <div class="modal-content">
             <div class="modal-header">New Transaction</div>
             <form id="transactionForm">
+                
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="tType">
+                        <option value="expense" selected>Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Name</label>
                     <input type="text" id="tName" placeholder="e.g., Supermarket" required>
@@ -203,5 +218,17 @@
     </div>
 
 <script src="../static/js/transactions.js"></script>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu" style="display:none; position:fixed; z-index:2000;">
+        <ul class="context-menu-list">
+            <li id="cmEdit">Edit</li>
+            <li id="cmDelete" class="delete-opt" style="color:red; border-top:1px solid #eee;">Delete</li>
+        </ul>
+    </div>
+
+    <script src="../static/js/data-manager.js"></script>
+    <script src="../static/js/graph.js"></script>
+    <script src="../static/js/cards-data.js"></script>
 </body>
 </html>
