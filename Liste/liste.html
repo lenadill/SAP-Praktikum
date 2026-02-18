@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Finances</title>
+</head>
+<body>
+
+<h1>Finances</h1>
+
+<input type="number" id="amount" placeholder="Ausgabenhöhe">
+<input type="text" id="category" placeholder="Kategorie">
+<input type="date" id="date">
+<button onclick="addEntry()">+</button>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Ausgabenhöhe</th>
+            <th>Kategorie</th>
+            <th>Datum</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody">
+    </tbody>
+</table>
+
+<script>
+function addEntry() {
+    const amount = document.getElementById("amount").value;
+    const category = document.getElementById("category").value;
+    const date = document.getElementById("date").value;
+
+    if (!amount || !category || !date) {
+        alert("Bitte alle Felder ausfüllen!");
+        return;
+    }
+
+    const entry = { amount, category, date };
+
+    let entries = JSON.parse(localStorage.getItem("finances")) || [];
+    entries.push(entry);
+    localStorage.setItem("finances", JSON.stringify(entries));
+
+    addRowToTable(entry);
+
+
+    document.getElementById("amount").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("date").value = "";
+}
+
+function addRowToTable(entry) {
+    const tableBody = document.getElementById("tableBody");
+    const row = document.createElement("tr");
+
+
+    row.innerHTML = `
+        <td>${entry.amount}</td>
+        <td>${entry.category}</td>
+        <td>${entry.date}</td>
+    `;
+
+    tableBody.appendChild(row);
+}
+
+window.onload = function() {
+    let entries = JSON.parse(localStorage.getItem("finances")) || [];
+    entries.forEach(entry => addRowToTable(entry));
+}
+</script>
+
+</body>
+</html>
+
