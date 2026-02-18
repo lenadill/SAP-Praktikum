@@ -1,4 +1,9 @@
- const ctx = document.getElementById('myChart');
+import { calc_turnover } from './graph_logic.js';
+
+const revenue = [7000, 8000, 9000, 10000, 10000, 9000, 15000, 5000, 12000, 10000, 10000, 15000]
+const outgoings = [8000, 6000, 6000, 7000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 12000]
+const turnover = calc_turnover(revenue,outgoings)
+const ctx = document.getElementById('myChart');
 
   new Chart(ctx, {
     type: 'line',
@@ -7,21 +12,21 @@
       datasets: [
         {
           label: 'Umsatz',
-          data: [10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 15000],
+          data: revenue,
           borderColor: '#667eea',
           borderWidth: 2,
           tension: 0.4
         },
         {
           label: 'Ausgaben',
-          data: [6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 12000],
+          data: outgoings,
           borderColor: '#e74c3c',
           borderWidth: 2,
           tension: 0.4
         },
         {
           label: 'Gewinn',
-          data: [4000, 4000, 4000, 4000, 4000, 4000, 4000, 4000, 4000, 4000, 4000, 3000],
+          data: turnover,
           borderColor: '#2ecc71',
           borderWidth: 2,
           tension: 0.4
