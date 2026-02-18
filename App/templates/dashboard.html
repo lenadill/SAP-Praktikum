@@ -6,8 +6,13 @@
     <title>Dashboard</title>
     <link rel="stylesheet" href="../static/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        if (localStorage.getItem('sapAuth') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
 </head>
-<body>
+<body data-require-auth="true">
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -150,6 +155,7 @@
         </main>
     </div>
 
+    <script src="../static/js/auth.js"></script>        
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../static/js/dashboard.js"></script>
     <script src="../static/js/ai-chat.js"></script>
@@ -158,6 +164,9 @@
     
     <button class="diamond-btn" title="Open AI Assistant" aria-label="Open AI Chat">
         <img src="../assets/icons/joule_logo.png" alt="AI Assistant">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 2l5 7-5 7-5-7 5-7zm0 2.5L9.6 9h4.8L12 4.5z" />
+            </svg>
     </button>
 
     <!-- Modal for new transaction -->
