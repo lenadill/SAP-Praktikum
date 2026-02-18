@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Login</title>
+	<link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body>
+	<div class="container">
+		<aside class="sidebar">
+			<div class="sidebar-header">
+				<img src="../assets/pictures/sap_logo.png" alt="SAP" class="sidebar-logo">
+			</div>
+			<nav>
+				<ul class="menu">
+					<li class="menu-item">
+						<a href="index.html">
+							<span class="menu-icon"></span>
+							<span>Home</span>
+						</a>
+					</li>
+				</ul>
+			</nav>
+			<div class="sidebar-footer">
+				<a href="index.html" class="logout-btn">Log Out</a>
+			</div>
+		</aside>
+
+		<main class="main-content">
+			<div class="header">
+				<h1>Login</h1>
+			</div>
+
+			<div class="content-section">
+				<form class="login-form">
+					<label for="email">Email</label>
+					<input id="email" type="email" name="email" />
+					<label for="password">Password</label>
+					<input id="password" type="password" name="password" />
+					<button type="submit" class="add-btn">Log In</button>
+				</form>
+			</div>
+		</main>
+	</div>
+
+	<script src="../static/js/dashboard.js"></script>
+	<button class="diamond-btn" title="Diamond action" aria-label="Diamond">
+		<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+			<path d="M12 2l5 7-5 7-5-7 5-7zm0 2.5L9.6 9h4.8L12 4.5z" />
+		</svg>
+	</button>
+</body>
+</html>
+
