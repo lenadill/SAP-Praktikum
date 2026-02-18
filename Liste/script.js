@@ -32,3 +32,14 @@ form.addEventListener("submit", (e) => {
   form.reset();
   formContainer.style.display = "none";
 });
+
+document.getElementById("openForm").addEventListener("click", function() {
+    const form = document.getElementById("formContainer");
+    form.style.display = form.style.display === "none" ? "block" : "none";
+});
+
+// Der alte button onclick addEntry wird jetzt an den Absenden-Button gebunden
+document.getElementById("submitEntry").addEventListener("click", function() {
+    addEntry();
+    document.getElementById("formContainer").style.display = "none"; // Formular nach Absenden schließen
+});
