@@ -1,54 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Login</title>
 	<link rel="stylesheet" href="../static/css/style.css">
 </head>
-<body>
-	<div class="container">
-		<aside class="sidebar">
-			<div class="sidebar-header">
-				<img src="../assets/pictures/sap_logo.png" alt="SAP" class="sidebar-logo">
-			</div>
-			<nav>
-				<ul class="menu">
-					<li class="menu-item">
-						<a href="index.html">
-							<span class="menu-icon"></span>
-							<span>Home</span>
-						</a>
-					</li>
+<body class="login-body">
+	<div class="login-shell">
+		<div class="login-panel">
+			<div class="login-hero">
+				<div class="login-badge">SAP Finance</div>
+				<img src="../assets/pictures/sap_logo.png" alt="SAP" class="login-logo">
+				<h1>Business Dashboard</h1>
+				<p>Steuern Sie Umsätze, Ausgaben und Überschüsse auf einen Blick.</p>
+				<ul class="login-highlights">
+					<li>Live-Kennzahlen pro Zeitraum</li>
+					<li>Intelligente Assistenten</li>
+					<li>Sicherer Zugriff für Ihr Team</li>
 				</ul>
-			</nav>
-			<div class="sidebar-footer">
-				<a href="index.html" class="logout-btn">Log Out</a>
-			</div>
-		</aside>
-
-		<main class="main-content">
-			<div class="header">
-				<h1>Login</h1>
 			</div>
 
-			<div class="content-section">
-				<form class="login-form">
-					<label for="email">Email</label>
-					<input id="email" type="email" name="email" />
-					<label for="password">Password</label>
-					<input id="password" type="password" name="password" />
-					<button type="submit" class="add-btn">Log In</button>
+			<div class="login-card">
+				<div class="login-card-header">
+					<p class="eyebrow">Sign in</p>
+					<h2>Willkommen zurück</h2>
+					<p class="subtext">Melden Sie sich mit Ihren Zugangsdaten an, um das Dashboard zu öffnen.</p>
+				</div>
+
+				<form id="loginForm" class="login-form" novalidate>
+					<label for="email">E-Mail</label>
+					<input id="email" name="email" type="email" placeholder="name@unternehmen.com" required>
+
+					<label for="password">Passwort</label>
+					<input id="password" name="password" type="password" placeholder="••••••••" required>
+
+					<div class="login-actions">
+						<label class="checkbox">
+							<input type="checkbox" id="remember" checked>
+							<span>Angemeldet bleiben</span>
+						</label>
+						<a href="#" class="link">Passwort vergessen?</a>
+					</div>
+
+					<button type="submit" class="login-button">Login</button>
+					<p id="loginError" class="login-error" aria-live="polite"></p>
 				</form>
-                <p style="margin-top: 20px;">Don't have an account? <a href="signup.html">Sign Up</a></p>
 			</div>
-		</main>
+		</div>
 	</div>
 
-	<script src="../static/js/dashboard.js"></script>
-	<button class="diamond-btn" title="Open AI Assistant" aria-label="Open AI Chat">
-        <img src="../assets/icons/joule_logo.png" alt="AI Assistant">
-	</button>
+	<script src="../static/js/auth.js"></script>
 </body>
 </html>
+
 
