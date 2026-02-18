@@ -110,6 +110,8 @@ body {
     margin-left: 250px;
     flex: 1;
     padding: 20px;
+    overflow-x: hidden;
+    max-width: calc(100vw - 250px);
 }
 
 .header {
@@ -184,10 +186,19 @@ body {
 
     .main-content {
         margin-left: 60px;
+        max-width: calc(100vw - 60px);
     }
 
     .dashboard-grid {
         grid-template-columns: 1fr;
+    }
+
+    .chart-area {
+        flex-direction: column;
+    }
+
+    .chart-controls {
+        width: 100%;
     }
 }
 
@@ -197,6 +208,8 @@ body {
     align-items: flex-start;
     gap: 20px;
     margin-bottom: 30px;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .chart-box {
@@ -204,17 +217,19 @@ body {
     border-radius: 18px;
     padding: 18px;
     box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-    flex: 1 1 70%;
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    height: 400px;
 }
 
 .chart-box canvas {
-    width: 100%;
-    height: 260px;
     display: block;
 }
 
 .chart-controls {
-    width: 220px;
+    width: 300px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -547,3 +562,108 @@ body {
     .ai-chat-panel { width: 100vw; }
 }
 
+
+/* Card styling */
+.card {
+  padding: 0.75rem;
+  background-color: #fff;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  margin-top: 10px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+}
+
+.title span {
+  position: relative;
+  padding: 0.4rem;
+  background-color: #10B981;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 9999px;
+}
+
+.card-icon.revenue-icon {
+  background-color: #6f42c1 !important;
+}
+
+.card-icon.expenses-icon {
+  background-color: #e74c3c !important;
+}
+
+.card-icon.surplus-icon {
+  background-color: #27ae60 !important;
+}
+
+.title span svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  height: 1rem;
+}
+
+.title-text {
+  margin-left: 0.5rem;
+  color: #374151;
+  font-size: 14px;
+}
+
+
+.data {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.data p {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  color: #1F2937;
+  font-size: 1.75rem;
+  line-height: 2rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.data .range {
+  position: relative;
+  background-color: #E5E7EB;
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.data .range .fill-surplus {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #10b953;
+  width: 16.2%;
+  height: 100%;
+  border-radius: 0.25rem;
+}
+
+.data .range .fill-revenue {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #6f42c1;
+  width: 50%;
+  height: 100%;
+  border-radius: 0.25rem;
+}
+
+.data .range .fill-expenses {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #e74c3c;
+  width: 33.8%;
+  height: 100%;
+  border-radius: 0.25rem;
+}
