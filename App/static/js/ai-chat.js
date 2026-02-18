@@ -58,15 +58,45 @@
     const sendBtn  = document.getElementById('aiChatSend');
     const messages = document.getElementById('aiChatMessages');
 
+    let helpBubble = null;
+    let helpTimer = null;
+
     function openChat() {
         panel.classList.add('open');
         overlay.classList.add('open');
         input.focus();
+        hideHelpBubble();
     }
 
-    function closeChat() {
-        panel.classList.remove('open');
-        overlay.classList.remove('open');
+    function hideHelpBubble() {
+        if (helpBubble) {
+            helpBubble.classList.remove('show');
+            setTimeout(() => helpBubble.remove(), 500);
+            helpBubble = null;
+        }
+        if (helpTimer) {
+            clearTimeout(helpTimer);
+            helpTimer = null;
+        }
+    }
+
+    function showHelpBubble() {
+        if (panel.classList.contains('open')) return;
+        
+        helpBubble = document.createElement('div');
+        helpBubble.className = 'joule-help-bubble';
+        helpBubble.textContent = 'Brauchst du Hilfe?';
+        document.body.appendChild(helpBubble);
+        
+        // Kleine Verzögerung für die Animation
+        setTimeout(() => helpBubble.classList.add('show'), 10);
+        
+        helpBubble.addEventListener('click', openChat);
+    }
+
+    // Timer starten: nach 1 Minute (60.000ms) zeigen
+    function startHelpTimer() {
+        helpTimer = setTimeout(showHelpBubble, 60000); 
     }
 
     closeBtn.addEventListener('click', closeChat);
@@ -80,13 +110,19 @@
     // Diamant-Button erst nach vollständigem DOM-Parse verknüpfen
     document.addEventListener('DOMContentLoaded', function () {
         const diamondBtn = document.querySelector('.diamond-btn');
-        if (diamondBtn) diamondBtn.addEventListener('click', openChat);
+        if (diamondBtn) {
+            diamondBtn.addEventListener('click', openChat);
+            startHelpTimer();
+        }
     });
 
     // Fallback: falls DOMContentLoaded bereits gefeuert hat
     if (document.readyState !== 'loading') {
         const diamondBtn = document.querySelector('.diamond-btn');
-        if (diamondBtn) diamondBtn.addEventListener('click', openChat);
+        if (diamondBtn) {
+            diamondBtn.addEventListener('click', openChat);
+            startHelpTimer();
+        }
     }
 
     // Textarea automatisch mitwachsen lassen

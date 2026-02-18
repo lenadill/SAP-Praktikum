@@ -305,7 +305,47 @@ body {
     color: white;
     box-shadow: 0 8px 18px rgba(111,66,193,0.18);
     cursor: pointer;
+    z-index: 999;
 }
+
+/* Joule Help Bubble */
+.joule-help-bubble {
+    position: fixed;
+    right: 34px;
+    bottom: 100px;
+    background: white;
+    padding: 12px 18px;
+    border-radius: 18px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+    z-index: 1000;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s, transform 0.5s;
+    pointer-events: none;
+}
+
+.joule-help-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.joule-help-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    right: 24px;
+    width: 16px;
+    height: 16px;
+    background: white;
+    transform: rotate(45deg);
+    box-shadow: 4px 4px 5px rgba(0,0,0,0.03);
+}
+
 .diamond-btn img { width: 32px; height: 32px; object-fit: contain; filter: brightness(0) invert(1); }
 
 @media (max-width: 480px) {
