@@ -45,12 +45,29 @@ function addEntry() {
     localStorage.setItem("finances", JSON.stringify(entries));
 
     addRowToTable(entry);
+    }
+
+function enableRowDeletion(row, entry) 
+    {
+    row.addEventListener("contextmenu", function(e) {
+        e.preventDefault(); 
+        if (confirm("Diese Zeile löschen?")) {
+            row.remove();
+
+            let entries = JSON.parse(localStorage.getItem("finances")) || [];
+            entries = entries.filter(e => 
+                !(e.amount === entry.amount && e.category === entry.category && e.date === entry.date)
+            );
+            localStorage.setItem("finances", JSON.stringify(entries));
+        }
+    });
+}
+
 
 
     document.getElementById("amount").value = "";
     document.getElementById("category").value = "";
     document.getElementById("date").value = "";
-}
 
 function addRowToTable(entry) {
     const tableBody = document.getElementById("tableBody");
@@ -64,6 +81,7 @@ function addRowToTable(entry) {
     `;
 
     tableBody.appendChild(row);
+    enableRowDeletion(row, entry);
 }
 
 window.onload = function() {
