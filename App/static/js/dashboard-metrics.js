@@ -5,27 +5,37 @@
 
     function init() {
         const timeframeSelect = document.getElementById('chartTimeframeSelect');
+        const customRange = document.getElementById('customDateRange');
+        const startDateInput = document.getElementById('chartStartDate');
+        const endDateInput = document.getElementById('chartEndDate');
+
         if (timeframeSelect) {
-            timeframeSelect.addEventListener('change', updateDashboard);
+            timeframeSelect.addEventListener('change', () => {
+                if (timeframeSelect.value === 'custom') {
+                    customRange.style.display = 'flex';
+                } else {
+                    customRange.style.display = 'none';
+                    updateDashboard();
+                }
+            });
         }
 
-        // Listen for category changes from clicks in the list
+        [startDateInput, endDateInput].forEach(input => {
+            if (input) input.addEventListener('change', updateDashboard);
+        });
+
         document.addEventListener('categoryChanged', (e) => {
             currentCategory = e.detail.category;
             fetchAndRefresh();
         });
 
-        // Listen for transaction changes (add/edit/delete)
         document.addEventListener('dataUpdated', fetchAndRefresh);
-
         fetchAndRefresh();
     }
 
     function fetchAndRefresh() {
         let url = '/api/transactions?limit=10000';
-        if (currentCategory !== 'all') {
-            url += '&category=' + encodeURIComponent(currentCategory);
-        }
+        if (currentCategory !== 'all') url += '&category=' + encodeURIComponent(currentCategory);
 
         fetch(url)
             .then(res => res.json())
@@ -39,7 +49,6 @@
     function updateDashboard() {
         const timeframe = document.getElementById('chartTimeframeSelect')?.value || 'year';
         const processedData = processData(transactions, timeframe);
-        
         updateCards(processedData.totals);
         updateChart(processedData.chart);
     }
@@ -50,113 +59,110 @@
         let revenue = [];
         let expenses = [];
         
-        const getStartOfWeek = (d) => {
-            const date = new Date(d);
-            const day = date.getDay() || 7;
-            if (day !== 1) date.setHours(-24 * (day - 1));
-            return date;
-        };
+        let startDate, endDate;
+        let bucketType = 'day'; // 'day' or 'month'
 
         if (timeframe === 'week') {
+            const day = now.getDay() || 7;
+            startDate = new Date(now);
+            startDate.setDate(now.getDate() - (day - 1));
+            startDate.setHours(0,0,0,0);
+            endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+            endDate.setHours(23,59,59,999);
             labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            revenue = new Array(7).fill(0);
-            expenses = new Array(7).fill(0);
-            const startOfWeek = getStartOfWeek(now);
-            startOfWeek.setHours(0,0,0,0);
-            data.forEach(t => {
-                const tDate = new Date(t.timestamp);
-                if (tDate >= startOfWeek && tDate.getFullYear() === now.getFullYear()) {
-                    const dayIdx = (tDate.getDay() + 6) % 7;
-                    const val = parseFloat(t.wert);
-                    if (val > 0) revenue[dayIdx] += val;
-                    else expenses[dayIdx] += Math.abs(val);
-                }
-            });
         } 
         else if (timeframe === 'month') {
-            labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'];
-            revenue = new Array(5).fill(0);
-            expenses = new Array(5).fill(0);
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            data.forEach(t => {
-                const tDate = new Date(t.timestamp);
-                if (tDate >= startOfMonth && tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear()) {
-                    const weekIdx = Math.floor((tDate.getDate() - 1) / 7);
-                    if (weekIdx < 5) {
-                        const val = parseFloat(t.wert);
-                        if (val > 0) revenue[weekIdx] += val;
-                        else expenses[weekIdx] += Math.abs(val);
-                    }
-                }
-            });
-        }
-        else if (timeframe === 'last_month') {
-            labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'];
-            revenue = new Array(5).fill(0);
-            expenses = new Array(5).fill(0);
-            const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const targetMonth = lastMonthDate.getMonth();
-            const targetYear = lastMonthDate.getFullYear();
-            data.forEach(t => {
-                const tDate = new Date(t.timestamp);
-                if (tDate.getMonth() === targetMonth && tDate.getFullYear() === targetYear) {
-                    const weekIdx = Math.floor((tDate.getDate() - 1) / 7);
-                    const val = parseFloat(t.wert);
-                    if (val > 0) revenue[weekIdx] += val;
-                    else expenses[weekIdx] += Math.abs(val);
-                }
-            });
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            const daysInMonth = endDate.getDate();
+            for (let i = 1; i <= daysInMonth; i++) labels.push(i.toString());
         }
         else if (timeframe === 'year') {
+            startDate = new Date(now.getFullYear(), 0, 1);
+            endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
             labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            revenue = new Array(12).fill(0);
-            expenses = new Array(12).fill(0);
-            data.forEach(t => {
-                const tDate = new Date(t.timestamp);
-                if (tDate.getFullYear() === now.getFullYear()) {
-                    const monthIdx = tDate.getMonth();
-                    const val = parseFloat(t.wert);
-                    if (val > 0) revenue[monthIdx] += val;
-                    else expenses[monthIdx] += Math.abs(val);
-                }
-            });
+            bucketType = 'month';
         }
         else if (timeframe === 'last_year') {
+            startDate = new Date(now.getFullYear() - 1, 0, 1);
+            endDate = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
             labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            revenue = new Array(12).fill(0);
-            expenses = new Array(12).fill(0);
-            const targetYear = now.getFullYear() - 1;
-            data.forEach(t => {
-                const tDate = new Date(t.timestamp);
-                if (tDate.getFullYear() === targetYear) {
-                    const monthIdx = tDate.getMonth();
-                    const val = parseFloat(t.wert);
-                    if (val > 0) revenue[monthIdx] += val;
-                    else expenses[monthIdx] += Math.abs(val);
-                }
-            });
+            bucketType = 'month';
         }
         else if (timeframe.match(/^[0-9]{4}Q[1-4]$/)) {
             const year = parseInt(timeframe.substring(0, 4));
             const q = parseInt(timeframe.charAt(5));
-            const startMonth = (q - 1) * 3;
+            startDate = new Date(year, (q - 1) * 3, 1);
+            endDate = new Date(year, q * 3, 0, 23, 59, 59, 999);
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            labels = monthNames.slice(startMonth, startMonth + 3);
-            revenue = new Array(3).fill(0);
-            expenses = new Array(3).fill(0);
-            data.forEach(t => {
-                const tDate = new Date(t.timestamp);
-                if (tDate.getFullYear() === year) {
-                    const m = tDate.getMonth();
-                    if (m >= startMonth && m < startMonth + 3) {
-                        const idx = m - startMonth;
-                        const val = parseFloat(t.wert);
-                        if (val > 0) revenue[idx] += val;
-                        else expenses[idx] += Math.abs(val);
+            labels = monthNames.slice((q - 1) * 3, q * 3);
+            bucketType = 'month';
+        }
+        else if (timeframe === 'custom') {
+            const sStr = document.getElementById('chartStartDate').value;
+            const eStr = document.getElementById('chartEndDate').value;
+            
+            // Standard: Seit Jahresbeginn bis heute
+            startDate = sStr ? new Date(sStr) : new Date(now.getFullYear(), 0, 1);
+            endDate = eStr ? new Date(eStr) : new Date();
+            endDate.setHours(23, 59, 59, 999);
+
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 60) {
+                bucketType = 'month';
+                let curr = new Date(startDate);
+                curr.setDate(1); // Start at beginning of month for clean buckets
+                while (curr <= endDate) {
+                    labels.push(curr.toLocaleString('en-US', { month: 'short', year: '2-digit' }));
+                    curr.setMonth(curr.getMonth() + 1);
+                }
+            } else {
+                bucketType = 'day';
+                let curr = new Date(startDate);
+                while (curr <= endDate) {
+                    labels.push(curr.getDate() + '.' + (curr.getMonth() + 1) + '.');
+                    curr.setDate(curr.getDate() + 1);
+                }
+            }
+        }
+
+        revenue = new Array(labels.length).fill(0);
+        expenses = new Array(labels.length).fill(0);
+
+        data.forEach(t => {
+            const tDate = new Date(t.timestamp);
+            if (tDate >= startDate && tDate <= endDate) {
+                let idx = -1;
+                if (bucketType === 'month') {
+                    if (timeframe === 'year' || timeframe === 'last_year' || timeframe.includes('Q')) {
+                        idx = tDate.getMonth() % (timeframe.includes('Q') ? 3 : 12);
+                    } else {
+                        // Custom range months logic
+                        const monthsDiff = (tDate.getFullYear() - startDate.getFullYear()) * 12 + (tDate.getMonth() - startDate.getMonth());
+                        idx = monthsDiff;
+                    }
+                } else {
+                    if (timeframe === 'week') {
+                        idx = (tDate.getDay() + 6) % 7;
+                    } else if (timeframe === 'month') {
+                        idx = tDate.getDate() - 1;
+                    } else {
+                        // Custom range days
+                        const daysDiff = Math.floor((tDate - startDate) / (1000 * 60 * 60 * 24));
+                        idx = daysDiff;
                     }
                 }
-            });
-        }
+
+                if (idx >= 0 && idx < labels.length) {
+                    const val = parseFloat(t.wert);
+                    if (val > 0) revenue[idx] += val;
+                    else expenses[idx] += Math.abs(val);
+                }
+            }
+        });
 
         const totals = {
             revenue: revenue.reduce((a, b) => a + b, 0),
@@ -183,127 +189,26 @@
         if (surBar) surBar.style.width = (Math.max(0, totals.surplus) / max * 100) + '%';
     }
 
-    function getTodayXValue(timeframe) {
-        const now = new Date();
-        // Return index for discrete values or fractional for year/month
-        if (timeframe === 'week') {
-            return (now.getDay() + 6) % 7;
-        } 
-        else if (timeframe === 'month') {
-            return (now.getDate() - 1) / 7;
-        }
-        else if (timeframe === 'year') {
-            const month = now.getMonth();
-            const daysInMonth = new Date(now.getFullYear(), month + 1, 0).getDate();
-            return month + (now.getDate() - 1) / daysInMonth;
-        }
-        else if (timeframe.match(/^[0-9]{4}Q[1-4]$/)) {
-            const year = parseInt(timeframe.substring(0, 4));
-            const q = parseInt(timeframe.charAt(5));
-            if (now.getFullYear() === year) {
-                const monthInQ = now.getMonth() - (q - 1) * 3;
-                if (monthInQ >= 0 && monthInQ < 3) {
-                    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-                    return monthInQ + (now.getDate() - 1) / daysInMonth;
-                }
-            }
-        }
-        return null;
-    }
-
-    const todayLinePlugin = {
-        id: 'todayLine',
-        afterDraw: (chart) => {
-            const pluginOptions = chart.options.plugins.todayLine;
-            if (pluginOptions && pluginOptions.display && pluginOptions.xValue !== null) {
-                const ctx = chart.ctx;
-                const xAxis = chart.scales.x;
-                const yAxis = chart.scales.y;
-                
-                // Get pixel position - for category scales, getPixelForValue works with index or label
-                // For fractional values between categories, we interpolate manually
-                let xPos;
-                const index = pluginOptions.xValue;
-                if (Number.isInteger(index)) {
-                    xPos = xAxis.getPixelForTick(index);
-                } else {
-                    const low = Math.floor(index);
-                    const high = Math.ceil(index);
-                    const pLow = xAxis.getPixelForTick(low);
-                    const pHigh = xAxis.getPixelForTick(high);
-                    xPos = pLow + (pHigh - pLow) * (index - low);
-                }
-
-                if (isNaN(xPos)) return;
-
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(xPos, yAxis.top);
-                ctx.lineTo(xPos, yAxis.bottom);
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = '#8e44ad'; // Solid bright purple
-                ctx.stroke();
-                
-                // Today Label
-                ctx.fillStyle = '#8e44ad';
-                ctx.font = 'bold 12px Segoe UI';
-                ctx.textAlign = 'center';
-                ctx.fillText('TODAY', xPos, yAxis.top - 8);
-                
-                ctx.restore();
-            }
-        }
-    };
-
-    // Register plugin globally
-    if (typeof Chart !== 'undefined') {
-        Chart.register(todayLinePlugin);
-    }
-
     function updateChart(chartData) {
         const ctx = document.getElementById('myChart');
         if (!ctx) return;
-        const timeframe = document.getElementById('chartTimeframeSelect')?.value || 'year';
-        const todayX = getTodayXValue(timeframe);
-        
-        console.log(`Updating chart. TodayX index: ${todayX} for timeframe: ${timeframe}`);
-
         const data = {
             labels: chartData.labels,
             datasets: [
                 { label: 'Revenue', data: chartData.revenue, borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', fill: true, tension: 0.4 },
                 { label: 'Expenses', data: chartData.expenses, borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.1)', fill: true, tension: 0.4 },
-                { label: 'Surplus', data: chartData.revenue.map((r, i) => r - chartData.expenses[i]), borderColor: '#27ae60', tension: 0.4 }
+                { label: 'Surplus', data: chartData.revenue.map((r, i) => r - chartData.expenses[i]), borderColor: '#27ae60', tension: 0.4, borderWidth: 3 }
             ]
         };
-
-        if (myChart) { 
-            myChart.data = data; 
-            myChart.options.plugins.todayLine.xValue = todayX;
-            myChart.update(); 
-        }
+        if (myChart) { myChart.data = data; myChart.update(); }
         else {
             myChart = new Chart(ctx, {
-                type: 'line', 
-                data: data,
+                type: 'line', data: data,
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            top: 25
-                        }
-                    },
                     interaction: { mode: 'index', intersect: false },
-                    scales: { 
-                        y: { beginAtZero: true, ticks: { callback: (v) => '€' + v.toLocaleString() } }
-                    },
-                    plugins: { 
-                        legend: { position: 'bottom' },
-                        todayLine: {
-                            display: true,
-                            xValue: todayX
-                        }
-                    }
+                    scales: { y: { beginAtZero: true, ticks: { callback: (v) => '€' + v.toLocaleString() } } },
+                    plugins: { legend: { position: 'bottom' } }
                 }
             });
         }

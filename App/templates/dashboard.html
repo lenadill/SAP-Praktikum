@@ -110,26 +110,37 @@
                 </div>
                 <div class="chart-controls">
                     <select class="chart-select" id="chartTimeframeSelect">
-                        <optgroup label="Relative Periods">
+                        <optgroup label="Presets">
                             <option value="week">This Week</option>
                             <option value="month">This Month</option>
-                            <option value="last_month">Last Month</option>
                             <option value="year" selected>This Year (2026)</option>
                             <option value="last_year">Last Year (2025)</option>
+                            <option value="custom">Custom Range...</option>
                         </optgroup>
-                        <optgroup label="2026 Quarters">
+                        <optgroup label="Quarters 2026">
                             <option value="2026Q1">2026 - Q1</option>
                             <option value="2026Q2">2026 - Q2</option>
                             <option value="2026Q3">2026 - Q3</option>
                             <option value="2026Q4">2026 - Q4</option>
                         </optgroup>
-                        <optgroup label="2025 Quarters">
+                        <optgroup label="Quarters 2025">
                             <option value="2025Q1">2025 - Q1</option>
                             <option value="2025Q2">2025 - Q2</option>
                             <option value="2025Q3">2025 - Q3</option>
                             <option value="2025Q4">2025 - Q4</option>
                         </optgroup>
                     </select>
+
+                    <div id="customDateRange" style="display: none; flex-direction: column; gap: 8px; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <label style="font-size: 11px; font-weight: bold; color: #64748b;">START DATE</label>
+                            <input type="date" id="chartStartDate" class="chart-select" style="width: 100%;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <label style="font-size: 11px; font-weight: bold; color: #64748b;">END DATE</label>
+                            <input type="date" id="chartEndDate" class="chart-select" style="width: 100%;">
+                        </div>
+                    </div>
 
                      <!-- Revenue Card -->
                     <div class="card" data-card-type="revenue">
