@@ -1044,11 +1044,11 @@
       "timestamp": "2026-02-02T01:00:00Z"
     },
     {
-      "id": 1770148800065,
-      "name": "Strom",
-      "kategorie": "Wohnen",
-      "wert": -1054.73,
-      "timestamp": "2026-02-03T21:00:00Z"
+      "id": 1771419384051,
+      "name": "Essen",
+      "kategorie": "Food",
+      "wert": 15.45,
+      "timestamp": "2026-02-18T12:56:24.051Z"
     }
   ]
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,15 +51,125 @@
 			</div>
 
 			<div class="content-section">
-				<p>You can adjust settings here.</p>
+                <div class="settings-container">
+                    <!-- User Profile -->
+                    <section class="settings-section">
+                        <h3>User Profile</h3>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Name</label>
+                                <p>Maximilian Mustermann</p>
+                            </div>
+                            <div class="settings-control">
+                                <button class="save-btn" style="padding: 6px 14px; font-size: 0.8rem;">Edit</button>
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Email</label>
+                                <p>m.mustermann@sap.com</p>
+                            </div>
+                            <div class="settings-control">
+                                <button class="save-btn" style="padding: 6px 14px; font-size: 0.8rem;">Edit</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Notifications -->
+                    <section class="settings-section">
+                        <h3>Notifications</h3>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Email Notifications</label>
+                                <p>Receive weekly reports and transaction alerts via email.</p>
+                            </div>
+                            <div class="settings-control">
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Desktop Notifications</label>
+                                <p>Show browser notifications for real-time dashboard updates.</p>
+                            </div>
+                            <div class="settings-control">
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Display Settings -->
+                    <section class="settings-section">
+                        <h3>Display Settings</h3>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Dashboard Language</label>
+                                <p>Select your preferred language for the interface.</p>
+                            </div>
+                            <div class="settings-control">
+                                <select class="settings-input">
+                                    <option value="de">Deutsch</option>
+                                    <option value="en" selected>English</option>
+                                    <option value="fr">Français</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Default Currency</label>
+                                <p>Set the primary currency for all financial reports.</p>
+                            </div>
+                            <div class="settings-control">
+                                <select class="settings-input">
+                                    <option value="eur" selected>Euro (€)</option>
+                                    <option value="usd">US Dollar ($)</option>
+                                    <option value="gbp">British Pound (£)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Security -->
+                    <section class="settings-section">
+                        <h3>Security</h3>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Password</label>
+                                <p>Last changed 3 months ago.</p>
+                            </div>
+                            <div class="settings-control">
+                                <button class="save-btn">Change Password</button>
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Two-Factor Authentication</label>
+                                <p>Add an extra layer of security to your account.</p>
+                            </div>
+                            <div class="settings-control">
+                                <button class="save-btn" style="background-color: #2c3e50;">Enable 2FA</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div style="margin-top: 20px;">
+                        <button class="save-btn" onclick="alert('Settings saved!')" style="width: 100%; padding: 12px;">Save All Changes</button>
+                    </div>
+                </div>
 			</div>
 		</main>
 	</div>
 
 	<script src="../static/js/dashboard.js"></script>
     <script src="../static/js/ai-chat.js"></script>
-    <button class="diamond-btn" title="KI-Assistent öffnen" aria-label="KI-Chat öffnen">
-        <img src="../assets/icons/joule_logo.png" alt="KI-Assistent">
+    <button class="diamond-btn" title="Open AI Assistant" aria-label="Open AI Chat">
+        <img src="../assets/icons/joule_logo.png" alt="AI Assistant">
     </button>
 </body>
 </html>

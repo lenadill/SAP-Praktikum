@@ -56,6 +56,54 @@ function getDatabaseSummary() {
 
 app.use(express.json());
 
+
+// --- API für Transaktionen ---
+app.get('/api/transactions', (req, res) => {
+    try {
+        if (!fs.existsSync(DB_FILE)) return res.json({ eintraege: [] });
+        const db = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+        res.json(db);
+    } catch (err) {
+        res.status(500).json({ error: "Fehler beim Lesen der Datenbank" });
+    }
+});
+
+app.post('/api/transactions', (req, res) => {
+    try {
+        let db = { eintraege: [] };
+        if (fs.existsSync(DB_FILE)) {
+            db = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+        }
+        
+        const newEntry = {
+            id: Date.now(),
+            name: req.body.name || "Unbenannt",
+            kategorie: req.body.kategorie || "Sonstiges",
+            wert: parseFloat(req.body.wert || 0),
+            timestamp: new Date().toISOString()
+        };
+        
+        db.eintraege.push(newEntry);
+        fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+        res.json(newEntry);
+    } catch (err) {
+        res.status(500).json({ error: "Fehler beim Speichern" });
+    }
+});
+
+app.delete('/api/transactions/:id', (req, res) => {
+    try {
+        if (!fs.existsSync(DB_FILE)) return res.status(404).json({ error: "Nicht gefunden" });
+        let db = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+        const id = parseInt(req.params.id);
+        db.eintraege = db.eintraege.filter(e => e.id !== id);
+        fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Fehler beim Löschen" });
+    }
+});
+
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 app.post('/api/chat', async (req, res) => {

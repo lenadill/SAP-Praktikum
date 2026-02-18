@@ -2,38 +2,38 @@ document.addEventListener('DOMContentLoaded', function() {
   // Data for different time periods
   const chartData = {
     week: {
-      labels: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       revenue: [2000, 2200, 1900, 2500, 2800, 1500, 1200],
       outgoings: [1200, 1300, 1100, 1400, 1600, 900, 800],
     },
     month: {
-      labels: ['Woche 1', 'Woche 2', 'Woche 3', 'Woche 4'],
+      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
       revenue: [8000, 9500, 10200, 8500],
       outgoings: [5000, 5500, 6000, 4800],
     },
     year: {
-      labels: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+      labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
       revenue: [9000, 8000, 9000, 10000, 10000, 9000, 11000, 5000, 12000, 10000, 10000, 15000],
       outgoings: [8000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 12000],
 
     },
     '2025Q1': {
-      labels: ['Januar', 'Februar', 'März'],
+      labels: ['January', 'February', 'March'],
       revenue: [9000, 8000, 9000],
       outgoings: [8000, 6000, 6000],
     },
     '2025Q2': {
-      labels: ['April', 'Mai', 'Juni'],
+      labels: ['April', 'May', 'June'],
       revenue: [10000, 10000, 9000],
       outgoings: [6000, 6000, 6000],
     },
     '2025Q3': {
-      labels: ['Juli', 'August', 'September'],
+      labels: ['July', 'August', 'September'],
       revenue: [11000, 5000, 12000],
       outgoings: [6000, 6000, 6000],
     },
     '2025Q4': {
-      labels: ['Oktober', 'November', 'Dezember'],
+      labels: ['October', 'November', 'December'],
       revenue: [10000, 10000, 15000],
       outgoings: [6000, 6000, 12000],
     }
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
           beginAtZero: true,
           ticks: {
             callback: function(value) {
-              return value.toLocaleString('de-DE') + ' €';
+              return '€' + value.toLocaleString('en-US');
             }
           }
         }

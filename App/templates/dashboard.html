@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- Seitenleiste -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <img src="../assets/pictures/sap_logo.png" alt="SAP" class="sidebar-logo">
@@ -47,13 +47,13 @@
             </div>
         </aside>
 
-        <!-- Hauptbereich -->
+        <!-- Main Content -->
         <main class="main-content">
             <div class="header">
                 <h1>Welcome to the Dashboard</h1>
             </div>
 
-            <!-- Chart Bereich -->
+            <!-- Chart Section -->
             <section class="chart-area">
                 <div class="chart-box">
                     <canvas id="myChart"></canvas>
@@ -126,11 +126,11 @@
             </section>
 
             
-            <!-- Transactions Bereich -->
+            <!-- Transactions Section -->
             <section class="transactions">
                 <div class="transactions-header">
                     <h2 class="transactions-title">Transactions</h2>
-                    <button class="add-btn">Add Recipt</button>
+                    <button class="add-btn" id="btnAddRecipt">Add Receipt</button>
                 </div>
 
                 <table class="transactions-table">
@@ -139,10 +139,11 @@
                             <th>Category</th>
                             <th>Amount</th>
                             <th>Date</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td colspan="3" class="empty">Keine Einträge</td></tr>
+                        <tr><td colspan="3" class="empty">No entries</td></tr>
                     </tbody>
                 </table>
             </section>
@@ -154,8 +155,44 @@
     <script src="../static/js/ai-chat.js"></script>
     <script src="../static/js/graph.js"></script>
     <script src="../static/js/cards-data.js"></script>
-    <button class="diamond-btn" title="KI-Assistent öffnen" aria-label="KI-Chat öffnen">
-        <img src="../assets/icons/joule_logo.png" alt="KI-Assistent">
+    
+    <button class="diamond-btn" title="Open AI Assistant" aria-label="Open AI Chat">
+        <img src="../assets/icons/joule_logo.png" alt="AI Assistant">
     </button>
+
+    <!-- Modal for new transaction -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">New Transaction</div>
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="tName" placeholder="e.g., Supermarket" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="tKategorie">
+                        <option value="Income">Income</option>
+                        <option value="Housing">Housing</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Food" selected>Food</option>
+                        <option value="Leisure">Leisure</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Miscellaneous">Miscellaneous</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount (€)</label>
+                    <input type="number" id="tWert" step="0.01" placeholder="e.g., 12.50" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" id="btnCancel">Cancel</button>
+                    <button type="submit" class="btn btn-submit">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script src="../static/js/transactions.js"></script>
 </body>
 </html>
