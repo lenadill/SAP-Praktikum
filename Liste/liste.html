@@ -10,7 +10,13 @@
 
 <h1>Finances</h1>
 
-<input type="number" id="amount" placeholder="Ausgabenhöhe">
+<input type="number" id="amount" placeholder="Betrag" min="0" step="0.01">
+
+<select id="transactionType">
+    <option value="expense">Expense</option>
+    <option value="revenue">Revenue</option>
+</select>
+
 <input type="text" id="category" placeholder="Kategorie">
 <input type="date" id="date">
 <button onclick="addEntry()">+</button>
@@ -18,7 +24,8 @@
 <table border="1">
     <thead>
         <tr>
-            <th>Ausgabenhöhe</th>
+            <th>Transaction</th>
+            <th>Betrag</th>
             <th>Kategorie</th>
             <th>Datum</th>
         </tr>
@@ -30,6 +37,7 @@
 <script>
 function addEntry() {
     const amount = document.getElementById("amount").value;
+    const transactionType = document.getElementById("transactionType").value;
     const category = document.getElementById("category").value;
     const date = document.getElementById("date").value;
 
@@ -38,13 +46,18 @@ function addEntry() {
         return;
     }
 
-    const entry = { amount, category, date };
+    const entry = { amount, category, date, transactionType };
 
     let entries = JSON.parse(localStorage.getItem("finances")) || [];
     entries.push(entry);
     localStorage.setItem("finances", JSON.stringify(entries));
 
     addRowToTable(entry);
+
+        document.getElementById("amount").value = "";
+        document.getElementById("category").value = "";
+        document.getElementById("date").value = "";
+        document.getElementById("transactionType").value = "expense";
     }
 
 function enableRowDeletion(row, entry) 
@@ -56,25 +69,33 @@ function enableRowDeletion(row, entry)
 
             let entries = JSON.parse(localStorage.getItem("finances")) || [];
             entries = entries.filter(e => 
-                !(e.amount === entry.amount && e.category === entry.category && e.date === entry.date)
-            );
+             !(e.amount === entry.amount &&
+            e.category === entry.category &&
+            e.date === entry.date &&
+            e.transactionType === entry.transactionType)
+        );
             localStorage.setItem("finances", JSON.stringify(entries));
         }
     });
 }
 
-
-
-    document.getElementById("amount").value = "";
-    document.getElementById("category").value = "";
-    document.getElementById("date").value = "";
-
 function addRowToTable(entry) {
     const tableBody = document.getElementById("tableBody");
     const row = document.createElement("tr");
 
+    let symbol = "";
+    let color = "";
+
+    if (entry.transactionType === "revenue") {
+        symbol = "+";
+        color = "green";
+    } else {
+        symbol = "-";
+        color = "red";
+    }
 
     row.innerHTML = `
+        <td style="color:${color}; font-weight:bold;">${symbol}</td>
         <td>${entry.amount}</td>
         <td>${entry.category}</td>
         <td>${entry.date}</td>
