@@ -1,6 +1,6 @@
 # Code style sheet
 
-## Code, Variablen
+## Code, Variablen, Webseiten
 - Englisch
 
 ## Kommentare

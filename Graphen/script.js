@@ -1,7 +1,7 @@
 import { calc_turnover } from './graph_logic.js';
 
-const revenue = [7000, 8000, 9000, 10000, 10000, 9000, 11000, 5000, 12000, 10000, 10000, 15000]
-const outgoings = [8000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 12000]
+const revenue = [7000, 8000, 9000, 10000, 10000, 9000, 15000, 5000, 12000, 10000, 10000, 15000]
+const outgoings = [8000, 6000, 6000, 7000, 6000, 6000, 6000, 6000, 6000, 6000, 6000, 12000]
 const turnover = calc_turnover(revenue,outgoings)
 const ctx = document.getElementById('myChart');
 
