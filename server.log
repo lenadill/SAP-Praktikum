@@ -1569,3 +1569,106 @@ SyntaxError: Unexpected token ':'
 Node.js v24.11.0
 Proxy server listening on 3000
 Proxy server listening on 3000
+Proxy server listening on 3000
+Chat Request Messages: [
+  {
+    "role": "system",
+    "content": "Du bist Joule, ein professioneller SAP-Finanz-Assistent.\n### AKTIONEN:\n1. SUCHE: QUERY:{\"category\": \"Cat\", \"name\": \"Term\", \"date\": \"YYYY-MM-DD\"}\n2. SPEICHERN: ADD_TRANSACTION:{\"name\": \"Info\", \"kategorie\": \"Cat\", \"wert\": -10.0, \"sender\": \"SAP\", \"empfaenger\": \"Rec\"}\n\n### STRIKTE REGELN:\n- Bei Aktionen: Antworte NUR mit dem technischen Befehl (QUERY:... oder ADD_TRANSACTION:...). Absolut KEIN Text davor oder danach.\n- Erwähne NIEMALS Begriffe wie \"QUERY\" oder \"ADD_TRANSACTION\" in deiner menschlichen Antwort.\n- Wenn eine Aktion erfolgreich war, sag nur \"Habe ich hinzugefügt!\" oder ähnlich.\n- Antworte extrem kurz (max. 2 Sätze) und professionell."
+  },
+  {
+    "role": "assistant",
+    "content": "Hallo! Ich bin Joule. Wie kann ich dir heute helfen?"
+  },
+  {
+    "role": "user",
+    "content": "[ANGEHÄNGTE TRANSAKTION: Daily Housing, Kat: Housing, Wert: -14.25€, Datum: 2026-02-18T11:46:00Z, Von: SAP, An: Rent provider] \n\nwas war an dem tag"
+  }
+]
+Chat Response: {
+  "id": "chatcmpl-e4d448d1-e22d-44e9-9127-173830d18dc3",
+  "object": "chat.completion",
+  "created": 1771449197,
+  "model": "llama-3.3-70b-versatile",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "QUERY:{\"category\": \"Housing\", \"name\": \"Daily Housing\", \"date\": \"2026-02-18\"}"
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "queue_time": 0.048158507,
+    "prompt_tokens": 325,
+    "prompt_time": 0.027133704,
+    "completion_tokens": 28,
+    "completion_time": 0.068961613,
+    "total_tokens": 353,
+    "total_time": 0.096095317
+  },
+  "usage_breakdown": null,
+  "system_fingerprint": "fp_f8b414701e",
+  "x_groq": {
+    "id": "req_01khs9k8x3eejbw3bp2msx4tmp",
+    "seed": 1340275495
+  },
+  "service_tier": "on_demand"
+}
+Chat Request Messages: [
+  {
+    "role": "system",
+    "content": "Du bist Joule, ein professioneller SAP-Finanz-Assistent.\n### AKTIONEN:\n1. SUCHE: QUERY:{\"category\": \"Cat\", \"name\": \"Term\", \"date\": \"YYYY-MM-DD\"}\n2. SPEICHERN: ADD_TRANSACTION:{\"name\": \"Info\", \"kategorie\": \"Cat\", \"wert\": -10.0, \"sender\": \"SAP\", \"empfaenger\": \"Rec\"}\n\n### STRIKTE REGELN:\n- Bei Aktionen: Antworte NUR mit dem technischen Befehl (QUERY:... oder ADD_TRANSACTION:...). Absolut KEIN Text davor oder danach.\n- Erwähne NIEMALS Begriffe wie \"QUERY\" oder \"ADD_TRANSACTION\" in deiner menschlichen Antwort.\n- Wenn eine Aktion erfolgreich war, sag nur \"Habe ich hinzugefügt!\" oder ähnlich.\n- Antworte extrem kurz (max. 2 Sätze) und professionell."
+  },
+  {
+    "role": "assistant",
+    "content": "Hallo! Ich bin Joule. Wie kann ich dir heute helfen?"
+  },
+  {
+    "role": "user",
+    "content": "[ANGEHÄNGTE TRANSAKTION: Daily Housing, Kat: Housing, Wert: -14.25€, Datum: 2026-02-18T11:46:00Z, Von: SAP, An: Rent provider] \n\nwas war an dem tag"
+  },
+  {
+    "role": "assistant",
+    "content": "QUERY:{\"category\": \"Housing\", \"name\": \"Daily Housing\", \"date\": \"2026-02-18\"}"
+  },
+  {
+    "role": "user",
+    "content": "ERGEBNIS DER RECHERCHE: Gefunden: Daily Housing (-14.25€)"
+  }
+]
+Chat Response: {
+  "id": "chatcmpl-f9eaea00-b268-4160-b6e7-e636f704d2de",
+  "object": "chat.completion",
+  "created": 1771449197,
+  "model": "llama-3.3-70b-versatile",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Habe ich gefunden! Erfolgreiche Suche."
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "queue_time": 0.093611567,
+    "prompt_tokens": 383,
+    "prompt_time": 0.019375554,
+    "completion_tokens": 12,
+    "completion_time": 0.061623136,
+    "total_tokens": 395,
+    "total_time": 0.08099869
+  },
+  "usage_breakdown": null,
+  "system_fingerprint": "fp_c06d5113ec",
+  "x_groq": {
+    "id": "req_01khs9k947ft7sjyvs4re857cw",
+    "seed": 1610570532
+  },
+  "service_tier": "on_demand"
+}

@@ -143,8 +143,21 @@
                     tr.querySelector('.cat-cell').onclick = (ev) => { ev.stopPropagation(); currentCategoryFilter = e.kategorie; applyFilter(); };
                     tr.querySelector('.date-cell').onclick = (ev) => { ev.stopPropagation(); currentDateFilter = e.timestamp.split('T')[0]; loadTransactions(false); };
                     tr.oncontextmenu = (ev) => {
-                        ev.preventDefault(); ev.stopPropagation(); selectedTransactionId = e.id;
-                        if (contextMenu) { contextMenu.style.display = 'block'; contextMenu.style.left = ev.clientX + 'px'; contextMenu.style.top = ev.clientY + 'px'; }
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        selectedTransactionId = e.id;
+                        if (contextMenu) {
+                            contextMenu.style.display = 'block';
+                            contextMenu.style.left = ev.clientX + 'px';
+                            contextMenu.style.top = ev.clientY + 'px';
+                            
+                            // Simple collision check only if it goes off bottom
+                            const vHeight = window.innerHeight;
+                            const menuHeight = contextMenu.offsetHeight;
+                            if (ev.clientY + menuHeight > vHeight) {
+                                contextMenu.style.top = (ev.clientY - menuHeight) + 'px';
+                            }
+                        }
                     };
                     tableBody.appendChild(tr);
                 });

@@ -114,7 +114,13 @@ ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "S
     removeAttachment.onclick = () => { activeAttachment = null; attachmentArea.style.display = 'none'; };
 
     function appendMessage(text, role, save = true) {
-        const cleanText = text.replace(/(QUERY|ADD_TRANSACTION)(:[\s\n]*\{[\s\S]*?\})?/g, '').trim();
+        const cleanText = text
+            .replace(/QUERY:[\s\n]*\{[\s\S]*?\}/gi, '')
+            .replace(/ADD_TRANSACTION:[\s\n]*\{[\s\S]*?\}/gi, '')
+            .replace(/\bQUERY\b/g, '')
+            .replace(/\bADD_TRANSACTION\b/g, '')
+            .trim();
+        
         if (!cleanText && role === 'assistant') return false; 
 
         const wrapper = document.createElement('div');
