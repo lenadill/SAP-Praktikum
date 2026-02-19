@@ -20,6 +20,13 @@ function guardProtectedPage() {
 document.addEventListener('DOMContentLoaded', () => {
   guardProtectedPage();
 
+  // Wenn bereits eingeloggt und auf der Home/Index-Seite, direkt zum Dashboard weiterleiten
+const path = window.location.pathname;
+if (isAuthenticated() && (path.endsWith('index.html') || path.endsWith('/templates/') || path.endsWith('/templates'))) {
+  window.location.href = 'dashboard.html';
+  return;
+}
+
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
     // If already logged in, go straight to dashboard
