@@ -6,8 +6,13 @@
     <title>Support - Clarity</title>
     <link rel="stylesheet" href="../static/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        if (localStorage.getItem('sapAuth') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
 </head>
-<body>
+<body data-require-auth="true">
     <div class="container">
         <!-- Sidebar -->
         <aside class="sidebar">
