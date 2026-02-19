@@ -19,6 +19,7 @@
         let selectedTransactionId = null;
         let currentCategoryFilter = 'all';
         let currentSearchQuery = '';
+        let currentPriceFilter = '';
         let currentDateFilter = '';
         let currentSortColumn = 'timestamp';
         let currentSortOrder = 'DESC';
@@ -45,6 +46,7 @@
             let url = `/api/transactions?limit=${PAGE_SIZE}&offset=${currentOffset}`;
             if (currentCategoryFilter !== 'all') url += `&category=${encodeURIComponent(currentCategoryFilter)}`;
             if (currentSearchQuery) url += `&search=${encodeURIComponent(currentSearchQuery)}`;
+            if (currentPriceFilter) url += `&price=${encodeURIComponent(currentPriceFilter)}`;
             if (currentDateFilter) url += `&date=${encodeURIComponent(currentDateFilter)}`;
             url += `&sort=${currentSortColumn}&order=${currentSortOrder}`;
 
@@ -80,7 +82,15 @@
             titleEl.innerHTML = html;
             const cCat = document.getElementById('clearCatFilter'); if (cCat) cCat.onclick = (e) => { e.stopPropagation(); currentCategoryFilter = 'all'; applyFilter(); };
             const cDate = document.getElementById('clearDateFilter'); if (cDate) cDate.onclick = (e) => { e.stopPropagation(); currentDateFilter = ''; loadTransactions(false); };
-            const cSearch = document.getElementById('clearSearchFilter'); if (cSearch) cSearch.onclick = (e) => { e.stopPropagation(); currentSearchQuery = ''; if(searchInput) searchInput.value = ''; loadTransactions(false); };
+            const cSearch = document.getElementById('clearSearchFilter'); if (cSearch) cSearch.onclick = (e) => { 
+                e.stopPropagation(); 
+                currentSearchQuery = ''; 
+                currentPriceFilter = '';
+                currentDateFilter = '';
+                if(searchInput) searchInput.value = ''; 
+                document.body.classList.remove('search-active');
+                loadTransactions(false); 
+            };
             const cSort = document.getElementById('clearSortFilter'); if (cSort) cSort.onclick = (e) => {
                 e.stopPropagation(); currentSortColumn = 'timestamp'; currentSortOrder = 'DESC';
                 document.querySelectorAll('.transactions-table th').forEach(h => h.innerHTML = h.textContent.replace(' ▲', '').replace(' ▼', ''));
@@ -112,9 +122,56 @@
             let timeout;
             searchInput.addEventListener('input', (e) => {
                 const val = e.target.value.trim();
+                
+                // If searching, clear category filter to search across all categories
+                if (val && currentCategoryFilter !== 'all') {
+                    currentCategoryFilter = 'all';
+                    updateHeaderTags();
+                    document.dispatchEvent(new CustomEvent('categoryChanged', { detail: { category: 'all' } }));
+                }
+
+                // Toggle search-active class to hide chart and expand list area
+                document.body.classList.toggle('search-active', !!val);
+
                 if (clearSearchBtn) clearSearchBtn.style.display = val ? 'block' : 'none';
+                if (!val || val === '-' || val === '+') {
+                    currentSearchQuery = '';
+                    currentPriceFilter = '';
+                    currentDateFilter = '';
+                    document.body.classList.remove('search-active');
+                    loadTransactions(false);
+                    return;
+                }
                 clearTimeout(timeout);
-                timeout = setTimeout(() => { currentSearchQuery = val; loadTransactions(false); }, 300);
+                timeout = setTimeout(() => { 
+                    // Improved date detection (e.g., 2026-02-19 or 19.02.2026)
+                    const datePattern = /^(\d{4}-\d{2}-\d{2})|(\d{2}\.\d{2}\.\d{4})$/;
+                    // Price detection (e.g., 12, 12.50, -5, 10€)
+                    const pricePattern = /^-?\d+([.,]\d{1,2})?€?$/;
+
+                    if (datePattern.test(val)) {
+                        let dateVal = val;
+                        if (val.includes('.')) {
+                            const [d, m, y] = val.split('.');
+                            dateVal = `${y}-${m}-${d}`;
+                        }
+                        currentDateFilter = dateVal;
+                        currentSearchQuery = '';
+                    } else if (pricePattern.test(val)) {
+                        // Always show the original input as the search query tag for clarity
+                        currentSearchQuery = val;
+                    } else {
+                        currentSearchQuery = val;
+                    }
+                    
+                    // Always clear other filters when a new search starts
+                    if (currentSearchQuery) {
+                        currentDateFilter = '';
+                        currentPriceFilter = ''; // We don't use this anymore as search covers it
+                    }
+                    
+                    loadTransactions(false); 
+                }, 300);
             });
 
             if (clearSearchBtn) {
@@ -122,6 +179,9 @@
                     searchInput.value = '';
                     clearSearchBtn.style.display = 'none';
                     currentSearchQuery = '';
+                    currentPriceFilter = '';
+                    currentDateFilter = '';
+                    document.body.classList.remove('search-active');
                     loadTransactions(false);
                 };
             }

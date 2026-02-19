@@ -1,19 +1,27 @@
 (function () {
     const API_PROXY = '/api/chat';
     const STORAGE_KEY = 'joule_chat_history';
-    const SYSTEM_PROMPT = `Du bist Joule, der intelligente KI-Assistent für dieses SAP-Finanz-Dashboard. 
+    const SYSTEM_PROMPT = `Du bist Joule, der intelligente KI-Assistent für "Clarity", ein SAP-Finanz-Dashboard. 
 Deine Aufgabe ist es, Nutzer bei der Analyse ihrer Finanzen zu unterstützen und bei Bedarf als Personal Finance Advisor zu beraten.
 
-STILVORGABEN:
-- **FINANCE ADVISOR:** Gib auf Anfrage praktische Tipps zu Budgetierung, Sparen und Investitionen. Fördere verantwortungsbewusstes Management.
+### KONTEXT:
+- Diese App heißt "Clarity". Sie ist ein SAP-basiertes Tool zum Tracken von Transaktionen (Einnahmen/Ausgaben).
+- Es gibt ein Dashboard (Übersicht), eine Transaktionsliste und eine Support-Seite.
+- Auf der Support-Seite gibt es FAQs und ein Kontaktformular für menschlichen Support.
+
+### STILVORGABEN:
+- **HILFSBEREITSCHAFT:** Wenn du eine Aktion ausführst (z.B. Suche), erkläre kurz, was du tust. Antworte niemals nur mit einem Tool-Aufruf.
+- **SUPPORT:** Wenn Nutzer nach Hilfe oder Support fragen, verweise sie auf die Support-Seite oder biete an, ihre Fragen hier direkt zu beantworten.
+- **FINANCE ADVISOR:** Gib auf Anfrage praktische Tipps zu Budgetierung, Sparen und Investitionen.
 - **DISKRETION:** Nenne niemals Beträge oder den Kontostand, außer du wirst explizit danach gefragt.
-- **NATÜRLICHKEIT:** Antworte auf "Hallo" einfach freundlich.
-- **KÜRZE:** Maximal 2 Sätze.
+- **NATÜRLICHKEIT:** Antworte freundlich und professionell.
+- **KÜRZE:** Maximal 3 Sätze pro Antwort.
 - Nutze eine professionelle SAP-Tonalität.
 
 ### TOOLS:
-QUERY:{"category": "...", "name": "...", "date": "YYYY-MM-DD"}
-ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "SAP", "empfaenger": "..."}`;
+- QUERY:{"category": "...", "name": "...", "date": "YYYY-MM-DD"} -> Sucht nach Transaktionen.
+- ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "...", "empfaenger": "..."} -> Fügt eine NEUE Transaktion hinzu.
+**WICHTIG:** Nutze ADD_TRANSACTION nur, wenn der Nutzer explizit darum bittet, etwas NEUES zu speichern. Nutze es NIEMALS, wenn du eine bereits existierende (angehängte) Transaktion analysierst!`;
 
     let chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     let activeAttachment = null;
@@ -86,7 +94,7 @@ ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "S
             chatHistory = [];
             localStorage.removeItem(STORAGE_KEY);
             messagesContainer.innerHTML = "";
-            appendMessage("Hallo! Ich bin Joule. Wie kann ich dir heute helfen?", "assistant", true);
+            appendMessage("Hallo! Ich bin Joule. Wie kann ich dir heute helfen?", "assistant", null, true);
         }
     };
 
@@ -106,14 +114,14 @@ ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "S
     document.addEventListener('attachToJoule', (e) => {
         const t = e.detail.transaction;
         activeAttachment = t;
-        attachmentName.textContent = `${t.name} (${parseFloat(t.wert).toFixed(2)}€)`;
+        attachmentName.textContent = `${t.name || t.kategorie} (${parseFloat(t.wert).toFixed(2)}€)`;
         attachmentArea.style.display = 'block';
         openChat();
     });
 
     removeAttachment.onclick = () => { activeAttachment = null; attachmentArea.style.display = 'none'; };
 
-    function appendMessage(text, role, save = true) {
+    function appendMessage(text, role, attachment = null, save = true) {
         const cleanText = text
             .replace(/QUERY:[\s\n]*\{[\s\S]*?\}/gi, '')
             .replace(/ADD_TRANSACTION:[\s\n]*\{[\s\S]*?\}/gi, '')
@@ -121,7 +129,7 @@ ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "S
             .replace(/\bADD_TRANSACTION\b/g, '')
             .trim();
         
-        if (!cleanText && role === 'assistant') return false; 
+        if (!cleanText && role === 'assistant' && !attachment) return false; 
 
         const wrapper = document.createElement('div');
         wrapper.className = 'ai-message ai-message--' + (role === 'assistant' ? 'bot' : 'user');
@@ -130,13 +138,25 @@ ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "S
         avatar.textContent = role === 'user' ? 'Du' : 'J';
         const bubble = document.createElement('div');
         bubble.className = 'ai-message-bubble';
-        if (role === 'assistant' && typeof marked !== 'undefined') bubble.innerHTML = marked.parse(cleanText);
-        else bubble.textContent = cleanText;
+
+        if (attachment) {
+            const chip = document.createElement('div');
+            chip.style.cssText = 'display: inline-flex; align-items: center; background: #f3f0ff; border: 1px solid #6f42c1; border-radius: 8px; padding: 4px 8px; margin-bottom: 8px; font-size: 11px; color: #6f42c1; font-weight: bold;';
+            chip.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg> ${attachment.name || attachment.kategorie} (${parseFloat(attachment.wert).toFixed(2)}€)`;
+            bubble.appendChild(chip);
+            if (cleanText) bubble.appendChild(document.createElement('br'));
+        }
+
+        const textSpan = document.createElement('span');
+        if (role === 'assistant' && typeof marked !== 'undefined') textSpan.innerHTML = marked.parse(cleanText);
+        else textSpan.textContent = cleanText;
+        bubble.appendChild(textSpan);
+
         wrapper.appendChild(avatar); wrapper.appendChild(bubble);
         messagesContainer.appendChild(wrapper); messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
         if (save) {
-            chatHistory.push({ role, content: text });
+            chatHistory.push({ role, content: text, attachment });
             saveHistory();
             if (role === 'assistant' && !isPanelOpen) toggleNotificationDot(true);
         }
@@ -144,14 +164,15 @@ ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "S
     }
 
     if (chatHistory.length === 0) {
-        appendMessage("Hallo! Ich bin Joule. Wie kann ich dir heute helfen?", "assistant", true);
+        appendMessage("Hallo! Ich bin Joule. Wie kann ich dir heute helfen?", "assistant", null, true);
     } else {
-        chatHistory = chatHistory.map(m => ({ role: m.role === 'bot' ? 'assistant' : m.role, content: m.content }));
+        chatHistory = chatHistory.map(m => ({ role: m.role === 'bot' ? 'assistant' : m.role, content: m.content, attachment: m.attachment }));
         messagesContainer.innerHTML = "";
         chatHistory.forEach(m => {
-            appendMessage(m.content, m.role, false);
+            appendMessage(m.content, m.role, m.attachment, false);
         });
     }
+
 
     function showTyping() {
         const wrapper = document.createElement('div');
@@ -173,14 +194,16 @@ ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "S
         if (!text && !activeAttachment) return;
 
         let userMsgContent = text;
-        if (activeAttachment) {
-            const t = activeAttachment;
-            userMsgContent = `[ANGEHÄNGTE TRANSAKTION: ${t.name}, Kat: ${t.kategorie}, Wert: ${t.wert}€, Datum: ${t.timestamp}, Von: ${t.sender}, An: ${t.empfaenger}] \n\n` + (text || "Analysiere diese Transaktion.");
+        const currentAttachment = activeAttachment;
+        if (currentAttachment) {
+            const t = currentAttachment;
+            userMsgContent = `[ANGEHÄNGTE TRANSAKTION: ${t.name || t.kategorie}, Kat: ${t.kategorie}, Wert: ${t.wert}€, Datum: ${t.timestamp}, Von: ${t.sender}, An: ${t.empfaenger}] \n\n` + (text || "Analysiere diese Transaktion.");
             activeAttachment = null;
             attachmentArea.style.display = 'none';
         }
 
-        appendMessage(text || "Analysiere Transaktion...", 'user', true);
+        appendMessage(text || "Analysiere Transaktion...", 'user', currentAttachment, true);
+        // We update the content in history to include the technical attachment info for the AI
         chatHistory[chatHistory.length - 1].content = userMsgContent;
         saveHistory();
 
@@ -231,11 +254,11 @@ ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "S
                 else break;
             }
             if (typingEl) typingEl.remove();
-            if (!appendMessage(reply, 'assistant', true)) appendMessage("Ich konnte die gewünschten Daten finden.", "assistant", true);
+            if (!appendMessage(reply, 'assistant', null, true)) appendMessage("Ich konnte die gewünschten Informationen finden.", "assistant", null, true);
         } catch (err) {
             console.error(err);
             if (typingEl) typingEl.remove();
-            appendMessage('Fehler bei der Kommunikation.', 'assistant', true);
+            appendMessage('Fehler bei der Kommunikation.', 'assistant', null, true);
         } finally { sendBtn.disabled = false; }
     }
 })();
