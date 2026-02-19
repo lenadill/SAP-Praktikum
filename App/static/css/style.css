@@ -180,10 +180,10 @@ body {
 
 .search-active .transactions {
     margin-top: 0;
+    min-height: 800px;
 }
 
 .search-active .transactions-table {
-    min-height: 400px;
 }
 
 .header h1 {
@@ -640,6 +640,7 @@ input:checked + .slider:before {
 /* Transactions */
 .transactions {
     margin-top: 10px;
+    min-height: 500px;
 }
 .transactions-header {
     display: flex;
@@ -652,19 +653,37 @@ input:checked + .slider:before {
     font-size: 28px;
 }
 .add-btn {
-    margin-left: 6px;
-    background: #fff;
-    border: 2px solid #e6e6e6;
-    border-radius: 8px;
-    padding: 6px 12px;
-    min-width: 110px;
+    margin-left: 12px;
+    background: linear-gradient(135deg, #6f42c1, #9b59b6);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    min-width: 140px;
     height: auto;
     font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(111, 66, 193, 0.25);
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.add-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(111, 66, 193, 0.35);
+    background: linear-gradient(135deg, #7c4fd1, #a86cc7);
+}
+
+.add-btn:active {
+    transform: translateY(0);
+}
+
+.add-btn svg {
+    stroke-width: 3px;
 }
 
 .transactions-table {
@@ -723,6 +742,16 @@ input:checked + .slider:before {
     z-index: 99999 !important;
     visibility: visible !important;
     opacity: 1 !important;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.diamond-btn:hover {
+    transform: scale(1.12) rotate(8deg) !important;
+    box-shadow: 0 12px 32px rgba(111, 66, 193, 0.45) !important;
+}
+
+.diamond-btn:active {
+    transform: scale(0.92) !important;
 }
 
 /* Joule Help Bubble */
@@ -763,11 +792,12 @@ input:checked + .slider:before {
     box-shadow: 4px 4px 5px rgba(0,0,0,0.03);
 }
 
-.diamond-btn img { width: 32px; height: 32px; object-fit: contain; filter: brightness(0) invert(1); }
+.diamond-btn img { width: 24px; height: 24px; object-fit: contain; filter: brightness(0) invert(1); }
 
 @media (max-width: 480px) {
     .diamond-btn { right: 34px; bottom: 34px; width: 48px; height: 48px; }
     .diamond-btn svg { width: 20px; height: 20px; }
+    .diamond-btn img { width: 20px; height: 20px; }
 }
 
 /* Small adjustments to sidebar header for logo-like look */
@@ -1613,7 +1643,6 @@ input:checked + .slider:before {
 .clear-tag:hover { opacity: 1; }
 
 .transactions-table {
-    min-height: 500px;
     display: table;
 }
 

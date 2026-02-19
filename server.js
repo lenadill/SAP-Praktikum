@@ -28,59 +28,51 @@ async function getDatabaseSummary() {
             if (err) return resolve("Fehler beim Lesen der Finanzdaten.");
             if (!rows || rows.length === 0) return resolve("Keine Transaktionen gefunden.");
 
-            // 1. Einfache Summen
             let totalIncome = 0;
             let totalExpenses = 0;
             const categorySums = {};
+            const monthlyStats = {};
 
             rows.forEach(e => {
-                if (e.wert >= 0) totalIncome += e.wert;
-                else totalExpenses += Math.abs(e.wert);
+                const val = parseFloat(e.wert) || 0;
+                if (val >= 0) totalIncome += val;
+                else totalExpenses += Math.abs(val);
                 
-                categorySums[e.kategorie] = (categorySums[e.kategorie] || 0) + e.wert;
+                categorySums[e.kategorie] = (categorySums[e.kategorie] || 0) + val;
+                
+                const month = e.timestamp.substring(0, 7); // YYYY-MM
+                if (!monthlyStats[month]) monthlyStats[month] = { in: 0, out: 0 };
+                if (val >= 0) monthlyStats[month].in += val;
+                else monthlyStats[month].out += Math.abs(val);
             });
             
             const totalBalance = totalIncome - totalExpenses;
+            const recent = rows.slice(0, 20);
 
-            // 2. Zeitliche Analyse (Q4, letzter Monat, Jahr) vorbereiten
-            // Wir geben Joule einfach die Rohdaten der letzten ~50 Transaktionen
-            // sowie aggregierte Monats-Daten, damit er rechnen kann.
+            let summary = "### FINANZ-DASHBOARD ZUSAMMENFASSUNG ###\n";
+            summary += `- Kontostand: ${totalBalance.toFixed(2)}€\n`;
+            summary += `- Einnahmen: +${totalIncome.toFixed(2)}€\n`;
+            summary += `- Ausgaben: -${totalExpenses.toFixed(2)}€\n\n`;
             
-            const recent = rows.slice(0, 15); // Mehr Details für die neuesten
-
-            let summary = "### Finanz-Übersicht ###\n";
-            summary += `- Aktueller Kontostand: ${totalBalance.toFixed(2)}€\n`;
-            summary += `- Gesamteinnahmen (Historie): ${totalIncome.toFixed(2)}€\n`;
-            summary += `- Gesamtausgaben (Historie): ${totalExpenses.toFixed(2)}€\n\n`;
-            
-            summary += "### Umsätze nach Kategorie ###\n";
-            for (const [cat, sum] of Object.entries(categorySums)) {
+            summary += "### TOP KATEGORIEN ###\n";
+            const sortedCats = Object.entries(categorySums).sort((a, b) => a[1] - b[1]); // Absteigend (Ausgaben sind negativ)
+            sortedCats.slice(0, 5).forEach(([cat, sum]) => {
                 summary += `- ${cat}: ${sum.toFixed(2)}€\n`;
-            }
+            });
 
-            summary += "\n### Letzte 15 Transaktionen (Detail) ###\n";
+            summary += "\n### MONATS-TREND (LETZTE 3 MONATE) ###\n";
+            const sortedMonths = Object.keys(monthlyStats).sort().reverse().slice(0, 3);
+            sortedMonths.forEach(m => {
+                summary += `- ${m}: +${monthlyStats[m].in.toFixed(2)}€ / -${monthlyStats[m].out.toFixed(2)}€\n`;
+            });
+
+            summary += "\n### LETZTE 20 TRANSAKTIONEN (PRÄZISE) ###\n";
             recent.forEach(r => {
                 const date = r.timestamp.split('T')[0];
-                const type = r.wert >= 0 ? "Einnahme" : "Ausgabe";
-                const details = r.sender ? `(Von: ${r.sender} -> An: ${r.empfaenger})` : "";
-                summary += `- [${date}] ${type} ${r.wert.toFixed(2)}€ | Kat: ${r.kategorie} | ${r.name} ${details}\n`;
+                const senderInfo = r.sender && r.sender !== 'SAP' ? ` von ${r.sender}` : "";
+                const receiverInfo = r.empfaenger && r.empfaenger !== 'SAP' ? ` an ${r.empfaenger}` : "";
+                summary += `- [${date}] ${r.name}: ${r.wert.toFixed(2)}€ (${r.kategorie})${senderInfo}${receiverInfo}\n`;
             });
-            
-            // Für ältere Daten: Monats-Aggregate
-            // Wir gruppieren die Transaktionen nach Jahr-Monat für Joule
-            const monthlyStats = {};
-            rows.forEach(r => {
-                const yyyymm = r.timestamp.substring(0, 7); // "2025-02"
-                if (!monthlyStats[yyyymm]) monthlyStats[yyyymm] = { in: 0, out: 0 };
-                if (r.wert >= 0) monthlyStats[yyyymm].in += r.wert;
-                else monthlyStats[yyyymm].out += Math.abs(r.wert);
-            });
-            
-            summary += "\n### Monats-Statistiken (Historie) ###\n";
-            const sortedMonths = Object.keys(monthlyStats).sort().reverse().slice(0, 12); // Letzte 12 Monate
-            for (const m of sortedMonths) {
-                summary += `- ${m}: Einnahmen ${monthlyStats[m].in.toFixed(2)}€, Ausgaben ${monthlyStats[m].out.toFixed(2)}€\n`;
-            }
 
             resolve(summary);
         });
@@ -89,7 +81,7 @@ async function getDatabaseSummary() {
 
 app.use(express.json());
 
-// --- API für Transaktionen ---
+// API endpoints...
 app.get("/api/transactions", (req, res) => {
     const limit = parseInt(req.query.limit) || 25;
     const offset = parseInt(req.query.offset) || 0;
@@ -98,7 +90,6 @@ app.get("/api/transactions", (req, res) => {
     const date = req.query.date;
     const sortBy = req.query.sort || "timestamp";
     const order = req.query.order || "DESC";
-
     const allowedColumns = ["kategorie", "sender", "empfaenger", "wert", "timestamp", "name"];
     const finalSort = allowedColumns.includes(sortBy) ? sortBy : "timestamp";
     const finalOrder = (order.toUpperCase() === "ASC") ? "ASC" : "DESC";
@@ -106,27 +97,13 @@ app.get("/api/transactions", (req, res) => {
     let query = "SELECT * FROM transactions";
     let whereClauses = [];
     let params = [];
-
-    if (category && category !== "all") {
-        whereClauses.push("kategorie = ?");
-        params.push(category);
-    }
-
-    if (date) {
-        whereClauses.push("timestamp LIKE ?");
-        params.push(`${date}%`);
-    }
-
+    if (category && category !== "all") { whereClauses.push("kategorie = ?"); params.push(category); }
+    if (date) { whereClauses.push("timestamp LIKE ?"); params.push(`${date}%`); }
     if (search) {
-        whereClauses.push("(name LIKE ? OR sender LIKE ? OR empfaenger LIKE ? OR kategorie LIKE ? OR timestamp LIKE ?)");
-        const sp = `%${search}%`;
-        params.push(sp, sp, sp, sp, sp);
+        whereClauses.push("(name LIKE ? OR sender LIKE ? OR empfaenger LIKE ? OR kategorie LIKE ? OR timestamp LIKE ? OR CAST(wert AS TEXT) LIKE ?)");
+        const sp = `%${search}%`; params.push(sp, sp, sp, sp, sp, sp);
     }
-
-    if (whereClauses.length > 0) {
-        query += " WHERE " + whereClauses.join(" AND ");
-    }
-
+    if (whereClauses.length > 0) query += " WHERE " + whereClauses.join(" AND ");
     query += ` ORDER BY ${finalSort} ${finalOrder} LIMIT ? OFFSET ?`;
     params.push(limit, offset);
 
@@ -140,34 +117,22 @@ app.post('/api/transactions', (req, res) => {
     const { name, kategorie, wert, sender, empfaenger } = req.body;
     const timestamp = new Date().toISOString();
     const id = Date.now();
-    
-    db.run(
-        "INSERT INTO transactions (id, name, kategorie, wert, timestamp, sender, empfaenger) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    db.run("INSERT INTO transactions (id, name, kategorie, wert, timestamp, sender, empfaenger) VALUES (?, ?, ?, ?, ?, ?, ?)",
         [id, name || "Unbenannt", kategorie || "Sonstiges", parseFloat(wert || 0), timestamp, sender || "", empfaenger || ""],
-        function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ id, name, kategorie, wert, timestamp, sender, empfaenger });
-        }
+        function(err) { if (err) return res.status(500).json({ error: err.message }); res.json({ id, name, kategorie, wert, timestamp, sender, empfaenger }); }
     );
 });
 
 app.put('/api/transactions/:id', (req, res) => {
     const { name, kategorie, wert, sender, empfaenger } = req.body;
-    db.run(
-        "UPDATE transactions SET name = ?, kategorie = ?, wert = ?, sender = ?, empfaenger = ? WHERE id = ?",
+    db.run("UPDATE transactions SET name = ?, kategorie = ?, wert = ?, sender = ?, empfaenger = ? WHERE id = ?",
         [name, kategorie, parseFloat(wert), sender, empfaenger, req.params.id],
-        function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true });
-        }
+        function(err) { if (err) return res.status(500).json({ error: err.message }); res.json({ success: true }); }
     );
 });
 
 app.delete('/api/transactions/:id', (req, res) => {
-    db.run("DELETE FROM transactions WHERE id = ?", req.params.id, function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ success: true });
-    });
+    db.run("DELETE FROM transactions WHERE id = ?", req.params.id, function(err) { if (err) return res.status(500).json({ error: err.message }); res.json({ success: true }); });
 });
 
 app.get('/health', (req, res) => res.json({ ok: true }));
@@ -179,34 +144,41 @@ app.post('/api/chat', async (req, res) => {
     const summary = await getDatabaseSummary();
     const clientMessages = req.body.messages || [];
     
-    // System Prompt für Joule mit erweitertem Kontext
-    const systemContent = "Du bist Joule, ein professioneller SAP-Finanz-Assistent.\n" +
-                         "### AKTIONEN:\n" +
-                         "1. SUCHE: QUERY:{\"category\": \"Cat\", \"name\": \"Term\", \"date\": \"YYYY-MM-DD\"}\n" +
-                         "2. SPEICHERN: ADD_TRANSACTION:{\"name\": \"Info\", \"kategorie\": \"Cat\", \"wert\": -10.0, \"sender\": \"SAP\", \"empfaenger\": \"Rec\"}\n\n" +
-                         "### STRIKTE REGELN:\n" +
-                         "- Bei Aktionen: Antworte NUR mit dem technischen Befehl (QUERY:... oder ADD_TRANSACTION:...). Absolut KEIN Text davor oder danach.\n" +
-                         "- Erwähne NIEMALS Begriffe wie \"QUERY\" oder \"ADD_TRANSACTION\" in deiner menschlichen Antwort.\n" +
-                         "- Wenn eine Aktion erfolgreich war, sag nur \"Habe ich hinzugefügt!\" oder ähnlich.\n" +
-                         "- Antworte extrem kurz (max. 2 Sätze) und professionell.";
-      const messages = [{ role: "system", content: systemContent }, ...clientMessages.filter(m => m.role !== "system")];
+    // Bereinige Nachrichten für Groq
+    const cleanMessages = clientMessages.map(m => {
+        const { attachment, ...rest } = m;
+        return rest;
+    }).filter(m => m.role !== 'system');
 
-      const resp = await fetchFn("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
+    const systemContent = `Du bist Joule, ein professioneller SAP-Finanz-Assistent für "Clarity".
+Du hilfst dem Nutzer, seine Finanzen zu verstehen und Transaktionen zu verwalten.
 
-            'Authorization': 'Bearer ' + GROQ_KEY,
-            'User-Agent':    'node-groq-proxy/1.0'
-        },
+${summary}
+
+### AKTIONEN:
+Nutze Tools NUR, wenn die Information NICHT oben in der Zusammenfassung steht:
+- QUERY:{"category": "...", "name": "...", "date": "YYYY-MM-DD"} -> Suche (nutze "all" für alle Kategorien)
+- ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -10.0, "sender": "...", "empfaenger": "..."} -> Neu speichern
+
+### STRIKTE REGELN:
+1. Wenn du ein Tool nutzt, antworte NUR mit dem Befehl. Absolut KEIN Text davor oder danach.
+2. Sei professionell, freundlich und extrem präzise.
+3. Beantworte Finanzfragen (z.B. "Wie viel für Essen?") direkt mit den oben genannten Daten.
+4. Heutiges Datum: ${new Date().toISOString().split('T')[0]}.`;
+
+    const messages = [{ role: "system", content: systemContent }, ...cleanMessages];
+
+    const resp = await fetchFn("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_KEY, "User-Agent": "node-groq-proxy/1.0" },
         body: JSON.stringify({ model: GROQ_MODEL, messages })
     });
-      console.log("Chat Request Messages:", JSON.stringify(messages, null, 2));
-
 
     const data = await resp.json();
-      console.log("Chat Response:", JSON.stringify(data, null, 2));
-
+    if (data.error) {
+        console.error("Groq API Error:", data.error);
+        return res.status(500).json(data);
+    }
     res.status(resp.status).json(data);
   } catch (err) {
     console.error('Proxy error', err);

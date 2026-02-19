@@ -30,7 +30,55 @@
         });
 
         document.addEventListener('dataUpdated', fetchAndRefresh);
+
+        // Add click listeners to cards for chart filtering
+        const cards = document.querySelectorAll('.card[data-card-type]');
+        cards.forEach(card => {
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', () => {
+                const type = card.dataset.cardType;
+                toggleChartDataset(type);
+            });
+        });
+
         fetchAndRefresh();
+    }
+
+    function toggleChartDataset(type) {
+        if (!myChart) return;
+        
+        const typeMap = { 'revenue': 0, 'expenses': 1, 'surplus': 2 };
+        const index = typeMap[type];
+        
+        if (index !== undefined) {
+            const meta = myChart.getDatasetMeta(index);
+            meta.hidden = meta.hidden === null ? !myChart.data.datasets[index].hidden : null;
+            myChart.update();
+            updateCardStyles();
+        }
+    }
+
+    function updateCardStyles() {
+        if (!myChart) return;
+        const cards = document.querySelectorAll('.card[data-card-type]');
+        const typeMap = { 'revenue': 0, 'expenses': 1, 'surplus': 2 };
+
+        cards.forEach(card => {
+            const type = card.dataset.cardType;
+            const index = typeMap[type];
+            const isHidden = myChart.getDatasetMeta(index).hidden;
+            
+            if (isHidden) {
+                card.style.opacity = '0.4';
+                card.style.transform = 'scale(0.95)';
+                card.style.filter = 'grayscale(0.5)';
+            } else {
+                card.style.opacity = '1';
+                card.style.transform = 'scale(1)';
+                card.style.filter = 'none';
+            }
+            card.style.transition = 'all 0.3s ease';
+        });
     }
 
     function fetchAndRefresh() {
@@ -95,9 +143,10 @@
             const q = parseInt(timeframe.charAt(5));
             startDate = new Date(year, (q - 1) * 3, 1);
             endDate = new Date(year, q * 3, 0, 23, 59, 59, 999);
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            labels = monthNames.slice((q - 1) * 3, q * 3);
-            bucketType = 'month';
+            
+            // Quarterly view by weeks (13 weeks)
+            labels = Array.from({length: 13}, (_, i) => `W${i + 1}`);
+            bucketType = 'quarter_week';
         }
         else if (timeframe === 'custom') {
             const sStr = document.getElementById('chartStartDate').value;
@@ -129,21 +178,53 @@
             }
         }
 
-        revenue = new Array(labels.length).fill(0);
-        expenses = new Array(labels.length).fill(0);
+        revenue = new Array(labels.length).fill(null);
+        expenses = new Array(labels.length).fill(null);
+
+        // Find current bucket index to avoid showing 0 for future dates
+        let currentBucketIdx = -1;
+        if (timeframe === 'week') {
+            currentBucketIdx = (now.getDay() + 6) % 7;
+        } else if (timeframe === 'month') {
+            currentBucketIdx = now.getDate() - 1;
+        } else if (timeframe === 'year' || timeframe === 'last_year') {
+            currentBucketIdx = timeframe === 'year' ? now.getMonth() : 12; // All months for last year
+        } else if (timeframe.includes('Q')) {
+             const year = parseInt(timeframe.substring(0, 4));
+             if (year < now.getFullYear()) currentBucketIdx = 13;
+             else if (year > now.getFullYear()) currentBucketIdx = -1;
+             else {
+                const q = parseInt(timeframe.charAt(5));
+                const qStart = new Date(year, (q-1)*3, 1);
+                const qEnd = new Date(year, q*3, 0);
+                if (now >= qStart && now <= qEnd) {
+                    currentBucketIdx = Math.floor((now - qStart) / (7 * 24 * 60 * 60 * 1000));
+                } else if (now > qEnd) currentBucketIdx = 13;
+             }
+        }
+
+        // Initialize occurring buckets with 0
+        for(let i=0; i<=currentBucketIdx && i<labels.length; i++) {
+            revenue[i] = 0;
+            expenses[i] = 0;
+        }
 
         data.forEach(t => {
             const tDate = new Date(t.timestamp);
             if (tDate >= startDate && tDate <= endDate) {
                 let idx = -1;
                 if (bucketType === 'month') {
-                    if (timeframe === 'year' || timeframe === 'last_year' || timeframe.includes('Q')) {
-                        idx = tDate.getMonth() % (timeframe.includes('Q') ? 3 : 12);
+                    if (timeframe === 'year' || timeframe === 'last_year') {
+                        idx = tDate.getMonth();
                     } else {
                         // Custom range months logic
                         const monthsDiff = (tDate.getFullYear() - startDate.getFullYear()) * 12 + (tDate.getMonth() - startDate.getMonth());
                         idx = monthsDiff;
                     }
+                } else if (bucketType === 'quarter_week') {
+                    // Weekly aggregation for quarters
+                    const weekDiff = Math.floor((tDate - startDate) / (7 * 24 * 60 * 60 * 1000));
+                    idx = Math.min(weekDiff, 12); // Limit to 13 weeks (0-12)
                 } else {
                     if (timeframe === 'week') {
                         idx = (tDate.getDay() + 6) % 7;
@@ -158,18 +239,29 @@
 
                 if (idx >= 0 && idx < labels.length) {
                     const val = parseFloat(t.wert);
-                    if (val > 0) revenue[idx] += val;
-                    else expenses[idx] += Math.abs(val);
+                    if (val > 0) revenue[idx] = (revenue[idx] || 0) + val;
+                    else expenses[idx] = (expenses[idx] || 0) + Math.abs(val);
                 }
             }
         });
 
         const totals = {
-            revenue: revenue.reduce((a, b) => a + b, 0),
-            expenses: expenses.reduce((a, b) => a + b, 0)
+            revenue: revenue.slice(0, currentBucketIdx + 1).reduce((a, b) => a + (b || 0), 0),
+            expenses: expenses.slice(0, currentBucketIdx + 1).reduce((a, b) => a + (b || 0), 0)
         };
         totals.surplus = totals.revenue - totals.expenses;
-        return { chart: { labels, revenue, expenses }, totals };
+
+        // Propagate last values to future buckets for horizontal lines (visual only)
+        if (currentBucketIdx >= 0 && currentBucketIdx < labels.length) {
+            const lastRev = revenue[currentBucketIdx] || 0;
+            const lastExp = expenses[currentBucketIdx] || 0;
+            for (let i = currentBucketIdx + 1; i < labels.length; i++) {
+                revenue[i] = lastRev;
+                expenses[i] = lastExp;
+            }
+        }
+
+        return { chart: { labels, revenue, expenses, currentBucketIdx }, totals };
     }
 
     function updateCards(totals) {
@@ -192,25 +284,111 @@
     function updateChart(chartData) {
         const ctx = document.getElementById('myChart');
         if (!ctx) return;
-        const data = {
-            labels: chartData.labels,
-            datasets: [
-                { label: 'Revenue', data: chartData.revenue, borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', fill: true, tension: 0.4 },
-                { label: 'Expenses', data: chartData.expenses, borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.1)', fill: true, tension: 0.4 },
-                { label: 'Surplus', data: chartData.revenue.map((r, i) => r - chartData.expenses[i]), borderColor: '#27ae60', tension: 0.4, borderWidth: 3 }
-            ]
+
+        const getSegment = () => ({
+            borderDash: ctx => {
+                const todayIdx = myChart ? myChart.options.plugins.todayLine?.index : chartData.currentBucketIdx;
+                return (todayIdx !== undefined && todayIdx >= 0 && ctx.p0.parsed.x >= todayIdx) ? [6, 4] : undefined;
+            }
+        });
+
+        const commonPointStyles = {
+            pointBackgroundColor: (ctx) => ctx.dataset.borderColor,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderWidth: 3
         };
-        if (myChart) { myChart.data = data; myChart.update(); }
+
+        const chartDatasets = [
+            { 
+                label: 'Revenue', data: chartData.revenue, borderColor: '#6f42c1', 
+                backgroundColor: 'rgba(111, 66, 193, 0.1)', fill: true, tension: 0.4, 
+                segment: getSegment(), ...commonPointStyles 
+            },
+            { 
+                label: 'Expenses', data: chartData.expenses, borderColor: '#e74c3c', 
+                backgroundColor: 'rgba(231, 76, 60, 0.1)', fill: true, tension: 0.4, 
+                segment: getSegment(), ...commonPointStyles 
+            },
+            { 
+                label: 'Surplus', data: chartData.revenue.map((r, i) => (r === null && chartData.expenses[i] === null) ? null : (r || 0) - (chartData.expenses[i] || 0)), 
+                borderColor: '#27ae60', tension: 0.4, borderWidth: 3, 
+                segment: getSegment(), ...commonPointStyles 
+            }
+        ];
+
+        if (myChart) {
+            // Keep visibility status when data is updated
+            myChart.data.datasets.forEach((ds, i) => {
+                const newDs = chartDatasets[i];
+                ds.data = newDs.data;
+                ds.segment = newDs.segment;
+                Object.assign(ds, commonPointStyles);
+            });
+            myChart.data.labels = chartData.labels;
+            myChart.options.plugins.todayLine = { index: chartData.currentBucketIdx };
+            myChart.update();
+            updateCardStyles();
+        }
         else {
+            // Custom plugin to draw vertical line for today
+            const todayLinePlugin = {
+                id: 'todayLine',
+                afterDraw: (chart, args, options) => {
+                    const { ctx, chartArea: { top, bottom, left, right }, scales: { x } } = chart;
+                    if (options.index === undefined || options.index < 0 || options.index >= chart.data.labels.length) return;
+                    
+                    const xPos = x.getPixelForValue(chart.data.labels[options.index]);
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([6, 4]);
+                    ctx.strokeStyle = '#64748b';
+                    ctx.moveTo(xPos, top);
+                    ctx.lineTo(xPos, bottom);
+                    ctx.stroke();
+                    
+                    // Draw "Today" label
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = 'bold 11px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('TODAY', xPos, top - 12);
+                    ctx.restore();
+                }
+            };
+
             myChart = new Chart(ctx, {
-                type: 'line', data: data,
+                type: 'line', 
+                data: {
+                    labels: chartData.labels,
+                    datasets: chartDatasets
+                },
+                plugins: [todayLinePlugin],
                 options: {
                     responsive: true, maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 25 // Space for TODAY label
+                        }
+                    },
                     interaction: { mode: 'index', intersect: false },
                     scales: { y: { beginAtZero: true, ticks: { callback: (v) => '€' + v.toLocaleString() } } },
-                    plugins: { legend: { position: 'bottom' } }
+                    plugins: { 
+                        todayLine: { index: chartData.currentBucketIdx },
+                        legend: { position: 'bottom', onClick: (e, legendItem, legend) => {
+                            const index = legendItem.datasetIndex;
+                            const meta = legend.chart.getDatasetMeta(index);
+                            meta.hidden = meta.hidden === null ? !legend.chart.data.datasets[index].hidden : null;
+                            legend.chart.update();
+                            updateCardStyles();
+                        }}
+                    }
                 }
             });
+            updateCardStyles();
         }
     }
 
