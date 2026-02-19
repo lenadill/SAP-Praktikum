@@ -4,7 +4,7 @@ window.DataManager = (function() {
     async function fetchTransactions() {
         try {
             // Fetch a high limit to ensure the graph has all data points
-            const res = await fetch('/api/transactions?limit=10000');
+            const res = await fetch('/api/transactions?limit=10000&t=' + Date.now());
             const data = await res.json();
             transactions = data.eintraege || [];
             console.log("DataManager: " + transactions.length + " Transaktionen geladen.");
@@ -21,29 +21,35 @@ window.DataManager = (function() {
         const nowMonth = now.getMonth();
         
         let targetYear = nowYear;
-        if (/^\d{4}$/.test(timeframe)) {
-            targetYear = parseInt(timeframe);
+        if (timeframe === 'last_year') {
+            targetYear = 2025;
+        } else if (/^\d{4}/.test(timeframe)) {
+            targetYear = parseInt(timeframe.substring(0, 4));
         }
+
+        console.log("DataManager: Processing", timeframe, "for year", targetYear, "Total transactions available:", transactions.length);
 
         let labels = [];
         let revenue = [];
         let outgoings = [];
 
-        if (timeframe === 'year' || /^\d{4}$/.test(timeframe)) {
+        if (timeframe === 'year' || timeframe === 'last_year' || /^\d{4}$/.test(timeframe)) {
             labels = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
             revenue = new Array(12).fill(0);
             outgoings = new Array(12).fill(0);
             
+            let matched = 0;
             transactions.forEach(t => {
                 const d = new Date(t.timestamp);
                 if (d.getFullYear() === targetYear) {
+                    matched++;
                     const month = d.getMonth();
                     const val = parseFloat(t.wert) || 0;
                     if (val >= 0) revenue[month] += val;
                     else outgoings[month] += Math.abs(val);
                 }
             });
-            console.log(`Daten für Jahr ${targetYear}:`, {revenue, outgoings});
+            console.log("DataManager: Year matches for " + targetYear + ": " + matched);
         } 
         else if (timeframe === 'month') {
             labels = ['Woche 1', 'Woche 2', 'Woche 3', 'Woche 4', 'Woche 5'];
@@ -81,7 +87,8 @@ window.DataManager = (function() {
                 }
             });
         }
-        else if (timeframe.startsWith('2025Q')) {
+        else if (/^\d{4}Q[1-4]$/.test(timeframe)) {
+            const year = parseInt(timeframe.substring(0, 4));
             const quarter = parseInt(timeframe.charAt(5));
             const startMonth = (quarter - 1) * 3;
             const monthLabels = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
@@ -91,7 +98,7 @@ window.DataManager = (function() {
 
             transactions.forEach(t => {
                 const d = new Date(t.timestamp);
-                if (d.getFullYear() === 2025) {
+                if (d.getFullYear() === year) {
                     const m = d.getMonth();
                     if (m >= startMonth && m < startMonth + 3) {
                         const idx = m - startMonth;

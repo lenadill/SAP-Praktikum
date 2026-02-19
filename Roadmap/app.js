@@ -1,237 +1,76 @@
 /* ============================================
-   ROADMAP PITCH – LOGIC
+   ROADMAP – COMPLETE 14-ITEM 3D (STABLE)
    ============================================ */
 
-// Roadmap Data: 14 improvements, 5 highlights (major: true)
-const ROADMAP_DATA = [
-    {
-        id: 1, major: true, category: "ai",
-        title: "Intelligente Dashboards",
-        description: "Automatische Erkennung von Trends und Anomalien in Ihren Geschäftsdaten durch fortschrittliche Machine Learning Modelle.",
-        persona: "Data Scientist",
-        x: 0, y: 0, z: 0
-    },
-    {
-        id: 2, major: false, category: "ai",
-        title: "Automatisierte Berichte",
-        x: 500, y: -150, z: -800
-    },
-    {
-        id: 3, major: true, category: "backend",
-        title: "API v3 Release",
-        description: "Eine komplett neue, performantere API-Architektur für schnellere Integrationen und Echtzeit-Datensynchronisation.",
-        persona: "System Architekt",
-        x: -400, y: 200, z: -1600
-    },
-    {
-        id: 4, major: false, category: "backend",
-        title: "Microservices-Migration",
-        x: 300, y: -100, z: -2200
-    },
-    {
-        id: 5, major: false, category: "backend",
-        title: "Performance-Optimierung",
-        x: -600, y: -250, z: -2800
-    },
-    {
-        id: 6, major: true, category: "frontend",
-        title: "UI/UX Redesign",
-        description: "Ein modernes, intuitives Interface für eine gesteigerte Benutzererfahrung und effizienteres Arbeiten auf allen Geräten.",
-        persona: "Product Designer",
-        x: 400, y: 150, z: -3600
-    },
-    {
-        id: 7, major: false, category: "frontend",
-        title: "Mobile App Update",
-        x: -300, y: -150, z: -4200
-    },
-    {
-        id: 8, major: false, category: "frontend",
-        title: "Barrierefreiheit 2.0",
-        x: 550, y: 200, z: -4800
-    },
-    {
-        id: 9, major: true, category: "security",
-        title: "2FA Security Update",
-        description: "Verbesserter Schutz durch moderne Zwei-Faktor-Authentisierung und biometrische Login-Optionen für alle Nutzer.",
-        persona: "Security Engineer",
-        x: -450, y: -100, z: -5600
-    },
-    {
-        id: 10, major: false, category: "security",
-        title: "Datenverschlüsselung",
-        x: 250, y: 250, z: -6200
-    },
-    {
-        id: 11, major: false, category: "security",
-        title: "Pentest-Automatisierung",
-        x: -500, y: -200, z: -6800
-    },
-    {
-        id: 12, major: true, category: "database",
-        title: "Cloud SQL Migration",
-        description: "Skalierbare Datenbank-Infrastruktur für maximale Verfügbarkeit und Performance auch bei hohen Lastspitzen.",
-        persona: "DevOps Engineer",
-        x: 400, y: 100, z: -7600
-    },
-    {
-        id: 13, major: false, category: "database",
-        title: "In-Memory Caching",
-        x: -200, y: -150, z: -8200
-    },
-    {
-        id: 14, major: false, category: "database",
-        title: "Auto-Backup System",
-        x: 350, y: 200, z: -8800
-    }
+const DATA = [
+    { id: 1, major: true, cat: "ai", title: "Intelligente Dashboards", desc: "Automatische Erkennung von Trends in Ihren Daten.", persona: "Data Scientist", x: 0, y: 0, z: 0 },
+    { id: 2, major: false, cat: "ai", title: "Automatisierte Berichte", desc: "KI-Insights direkt per Mail.", persona: "Manager", x: 400, y: -150, z: -800 },
+    { id: 3, major: true, cat: "backend", title: "API v3 Release", desc: "Neue Architektur für Echtzeit-Datensynchronisation.", persona: "Architekt", x: -400, y: 200, z: -1600 },
+    { id: 4, major: false, cat: "backend", title: "Microservices", desc: "Modulare Skalierung der Dienste.", persona: "DevOps", x: 300, y: -100, z: -2400 },
+    { id: 5, major: false, cat: "backend", title: "Performance-Optimierung", desc: "40% schnellere Server-Antworten.", persona: "DevOps", x: -500, y: -250, z: -3200 },
+    { id: 6, major: true, cat: "frontend", title: "UI/UX Redesign", desc: "Modernes Interface für effizienteres Arbeiten.", persona: "Designer", x: 400, y: 150, z: -4000 },
+    { id: 7, major: false, cat: "frontend", title: "Mobile App Update", desc: "Native Erfahrung auf iOS & Android.", persona: "User", x: -300, y: -150, z: -4800 },
+    { id: 8, major: false, cat: "frontend", title: "Barrierefreiheit 2.0", desc: "WCAG Konformität für alle Module.", persona: "User", x: 500, y: 200, z: -5600 },
+    { id: 9, major: true, cat: "security", title: "2FA Security Update", desc: "Biometrischer Login & Hardware-Keys.", persona: "Security", x: -450, y: -100, z: -6400 },
+    { id: 10, major: false, cat: "security", title: "Datenverschlüsselung", desc: "End-to-End Schutz auf Datenbank-Ebene.", persona: "Admin", x: 250, y: 250, z: -7200 },
+    { id: 11, major: false, cat: "security", title: "Pentest-Automatik", desc: "Permanente Sicherheitsprüfung.", persona: "Admin", x: -500, y: -200, z: -8000 },
+    { id: 12, major: true, cat: "database", title: "Cloud SQL Migration", desc: "Hochverfügbare Datenbank-Cluster.", persona: "DevOps", x: 400, y: 100, z: -8800 },
+    { id: 13, major: false, cat: "database", title: "In-Memory Caching", desc: "Blitzschneller Datenzugriff.", persona: "DevOps", x: -200, y: -150, z: -9600 },
+    { id: 14, major: false, cat: "database", title: "Auto-Backup System", desc: "Kein Datenverlust durch Point-in-Time Recovery.", persona: "Admin", x: 350, y: 200, z: -10400 }
 ];
 
-// State Management
-let currentIndex = -1; // -1 means before start
-let currentCameraPos = { x: 0, y: 0, z: 1200 };
-let targetCameraPos = { x: 0, y: 0, z: 1200 };
-
-// DOM Elements
-const startOverlay = document.getElementById('start-overlay');
-const startBtn = document.getElementById('start-btn');
-const viewport = document.getElementById('viewport');
+let index = 0;
 const scene = document.getElementById('scene');
-const progressFill = document.getElementById('progress-fill');
-const counterCurrent = document.getElementById('counter-current');
-const counterTotal = document.getElementById('counter-total');
-const endScreen = document.getElementById('end-screen');
-const restartBtn = document.getElementById('restart-btn');
+const progress = document.getElementById('progress-fill');
 
-// Initialization
 function init() {
-    counterTotal.textContent = ROADMAP_DATA.length;
-    renderCards();
-    setupEventListeners();
-    animate();
+    render();
+    setupEvents();
 }
 
-function renderCards() {
-    scene.innerHTML = '';
-    ROADMAP_DATA.forEach(data => {
-        const card = document.createElement('div');
-        card.className = `road-card ${data.major ? '' : 'minor'}`;
-        card.id = `card-${data.id}`;
-        card.style.setProperty('--wx', `${data.x}px`);
-        card.style.setProperty('--wy', `${data.y}px`);
-        card.style.setProperty('--wz', `${data.z}px`);
-
-        card.innerHTML = `
-            <div class="card-header">
-                <span class="card-category ${data.category}">${data.category}</span>
-                ${data.major ? '<span class="card-star">✦</span>' : ''}
-            </div>
-            <h2 class="card-title">${data.title}</h2>
-            ${data.major ? `
-                <p class="card-description">${data.description}</p>
-                <div class="card-divider"></div>
-                <div class="card-persona">
-                    <span>👤 ${data.persona}</span>
-                </div>
-            ` : ''}
-        `;
-        scene.appendChild(card);
-    });
+function render() {
+    scene.innerHTML = DATA.map((item, i) => `
+        <div class="road-card" id="card-${i}" 
+             style="transform: translate3d(${item.x}px, ${item.y}px, ${item.z}px)">
+            <div class="card-category ${item.cat}">${item.cat}</div>
+            <h2 class="card-title">${item.title}</h2>
+            <p class="card-desc">${item.desc}</p>
+            <div class="card-persona">👤 ${item.persona}</div>
+        </div>
+    `).join('');
 }
 
-function setupEventListeners() {
-    startBtn.addEventListener('click', startRoadmap);
-    restartBtn.addEventListener('click', restartRoadmap);
-    
-    window.addEventListener('keydown', (e) => {
-        if (currentIndex === -1) {
-            if (e.code === 'Space') startRoadmap();
-            return;
-        }
-        
-        if (e.code === 'ArrowRight' || e.code === 'Space') nextStep();
-        if (e.code === 'ArrowLeft') prevStep();
-    });
-}
-
-function startRoadmap() {
-    startOverlay.classList.add('fade-out');
-    viewport.classList.add('active');
-    currentIndex = -1;
-    nextStep();
-}
-
-function restartRoadmap() {
-    currentIndex = -1;
-    targetCameraPos = { x: 0, y: 0, z: 1200 };
-    endScreen.classList.remove('visible');
-    endScreen.classList.add('hidden');
-    startRoadmap();
-}
-
-function nextStep() {
-    if (currentIndex < ROADMAP_DATA.length - 1) {
-        currentIndex++;
-        updateActiveCard();
-    } else {
-        finishRoadmap();
-    }
-}
-
-function prevStep() {
-    if (currentIndex > 0) {
-        currentIndex--;
-        updateActiveCard();
-    }
-}
-
-function updateActiveCard() {
-    const activeData = ROADMAP_DATA[currentIndex];
-    
-    // Update camera target
-    targetCameraPos = {
-        x: -activeData.x,
-        y: -activeData.y,
-        z: -activeData.z + 800 // offset to see the card
+function setupEvents() {
+    document.getElementById('start-btn').onclick = () => {
+        document.getElementById('start-overlay').classList.add('hidden');
+        document.getElementById('viewport').classList.add('active');
+        update();
     };
 
-    // Update UI
-    counterCurrent.textContent = currentIndex + 1;
-    progressFill.style.width = `${((currentIndex + 1) / ROADMAP_DATA.length) * 100}%`;
-
-    // Highlight card
-    document.querySelectorAll('.road-card').forEach(card => card.classList.remove('active'));
-    const activeCard = document.getElementById(`card-${activeData.id}`);
-    if (activeCard) activeCard.classList.add('active');
+    window.onkeydown = (e) => {
+        if (e.code === 'ArrowRight' || e.code === 'Space') move(1);
+        if (e.code === 'ArrowLeft') move(-1);
+    };
 }
 
-function finishRoadmap() {
-    viewport.classList.remove('active');
-    endScreen.classList.remove('hidden');
-    setTimeout(() => {
-        endScreen.classList.add('visible');
-    }, 100);
-}
-
-// Animation loop (rAF) for smooth camera movement
-function animate() {
-    const dx = targetCameraPos.x - currentCameraPos.x;
-    const dy = targetCameraPos.y - currentCameraPos.y;
-    const dz = targetCameraPos.z - currentCameraPos.z;
-    
-    // Stop animating if we're close enough (performance save)
-    if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01 && Math.abs(dz) < 0.01) {
-        requestAnimationFrame(animate);
-        return;
+function move(dir) {
+    if (index + dir >= 0 && index + dir < DATA.length) {
+        index += dir;
+        update();
     }
+}
 
-    // Lerp (Linear Interpolation) for smooth movement
-    currentCameraPos.x += dx * 0.08;
-    currentCameraPos.y += dy * 0.08;
-    currentCameraPos.z += dz * 0.08;
+function update() {
+    const data = DATA[index];
+    // Kamera-Positionierung
+    scene.style.transform = `translate3d(${-data.x}px, ${-data.y}px, ${-data.z + 600}px)`;
 
-    scene.style.transform = `translate3d(${currentCameraPos.x.toFixed(2)}px, ${currentCameraPos.y.toFixed(2)}px, ${currentCameraPos.z.toFixed(2)}px)`;
+    document.querySelectorAll('.road-card').forEach((c, i) => {
+        c.classList.toggle('active', i === index);
+    });
 
-    requestAnimationFrame(animate);
+    progress.style.width = `${((index + 1) / DATA.length) * 100}%`;
+    document.getElementById('counter-current').textContent = index + 1;
 }
 
 init();

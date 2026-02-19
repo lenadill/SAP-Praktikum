@@ -1,6 +1,6 @@
 {
   "user": {
-    "full_name": "Maximilian Mustermann",
+    "full_name": "Friedrich Mustermann",
     "email": "maximilian.mustermann@sap.com",
     "employee_id": "SAP-982341",
     "department": "T&I SAP Winterpraktikum 2026",
@@ -8,7 +8,7 @@
     "preferred_language": "Deutsch",
     "currency": "EUR (€)",
     "fiscal_year_start": "January",
-    "nickname": "Max"
+    "nickname": "Friedrich"
   },
   "app_settings": {
     "theme": "SAP Fiori Modern",

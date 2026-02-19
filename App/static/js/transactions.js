@@ -38,12 +38,15 @@
         };
 
         function loadTransactions(append = false) {
-            if (isLoading || (!hasMore && append)) return;
+            if (append && (isLoading || !hasMore)) return;
+            
             isLoading = true;
             if (!append) {
-                currentOffset = 0; hasMore = true;
+                currentOffset = 0; 
+                hasMore = true;
                 if (tableEl) tableEl.classList.add('is-loading');
             }
+            
             let url = `/api/transactions?limit=${PAGE_SIZE}&offset=${currentOffset}`;
             if (currentCategoryFilter !== 'all') url += `&category=${encodeURIComponent(currentCategoryFilter)}`;
             if (currentSearchQuery) url += `&search=${encodeURIComponent(currentSearchQuery)}`;
@@ -133,9 +136,10 @@
             searchInput.addEventListener('input', (e) => {
                 const val = e.target.value.trim();
                 
-                // If searching, clear category filter to search across all categories
-                if (val && currentCategoryFilter !== 'all') {
+                // If searching, clear category and ID filters
+                if (val && (currentCategoryFilter !== 'all' || currentIdFilter)) {
                     currentCategoryFilter = 'all';
+                    currentIdFilter = '';
                     updateHeaderTags();
                     document.dispatchEvent(new CustomEvent('categoryChanged', { detail: { category: 'all' } }));
                 }
@@ -148,6 +152,7 @@
                     currentSearchQuery = '';
                     currentPriceFilter = '';
                     currentDateFilter = '';
+                    currentIdFilter = '';
                     document.body.classList.remove('search-active');
                     loadTransactions(false);
                     return;
@@ -155,7 +160,7 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(() => { 
                     // Improved date detection (e.g., 2026-02-19 or 19.02.2026)
-                    const datePattern = /^(\d{4}-\d{2}-\d{2})|(\d{2}\.\d{2}\.\d{4})$/;
+                    const datePattern = /^(\d{4}-\d{2}-\d{2})|(\d{1,2}\.\d{1,2}\.\d{4})$/;
                     // Price detection (e.g., 12, 12.50, -5, 10€)
                     const pricePattern = /^-?\d+([.,]\d{1,2})?€?$/;
 
@@ -163,21 +168,23 @@
                         let dateVal = val;
                         if (val.includes('.')) {
                             const [d, m, y] = val.split('.');
-                            dateVal = `${y}-${m}-${d}`;
+                            // Ensure leading zeros for YYYY-MM-DD format
+                            const day = d.padStart(2, '0');
+                            const month = m.padStart(2, '0');
+                            dateVal = `${y}-${month}-${day}`;
                         }
                         currentDateFilter = dateVal;
                         currentSearchQuery = '';
                     } else if (pricePattern.test(val)) {
-                        // Always show the original input as the search query tag for clarity
                         currentSearchQuery = val;
                     } else {
                         currentSearchQuery = val;
                     }
                     
-                    // Always clear other filters when a new search starts
                     if (currentSearchQuery) {
                         currentDateFilter = '';
-                        currentPriceFilter = ''; // We don't use this anymore as search covers it
+                        currentPriceFilter = '';
+                        currentIdFilter = '';
                     }
                     
                     loadTransactions(false); 
@@ -235,7 +242,7 @@
         }
 
         window.addEventListener('scroll', () => { if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) if (hasMore && !isLoading) loadTransactions(true); });
-        window.onclick = () => { if(contextMenu) contextMenu.style.display = 'none'; if(modal && event.target == modal) modal.style.display = 'none'; };
+        window.addEventListener('click', (ev) => { if(contextMenu) contextMenu.style.display = 'none'; if(modal && ev.target == modal) modal.style.display = 'none'; });
         
         if (cmAskJoule) cmAskJoule.onclick = () => {
             const row = document.querySelector(`tr[data-id="${selectedTransactionId}"]`);
