@@ -13,7 +13,7 @@ const db = new sqlite3.Database(DB_PATH);
 app.use('/static',    express.static(path.join(APP_DIR, 'static')));
 app.use('/assets',    express.static(path.join(APP_DIR, 'assets')));
 app.use('/templates', express.static(path.join(APP_DIR, 'templates')));
-app.get('/', (req, res) => res.redirect('/templates/index.html'));
+app.get('/', (req, res) => res.redirect('/templates/login.html'));
 
 let fetchFn = globalThis.fetch;
 try { if (!fetchFn) fetchFn = require('node-fetch'); } catch (e) {}
