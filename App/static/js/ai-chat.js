@@ -20,6 +20,7 @@ Deine Aufgabe ist es, Nutzer bei der Analyse ihrer Finanzen zu unterstützen und
 
 ### TOOLS:
 - QUERY:{"category": "...", "name": "...", "date": "YYYY-MM-DD"} -> Sucht nach Transaktionen.
+**WICHTIG:** Nutze QUERY für JEDE Frage zu Transaktionen, damit die Benutzeroberfläche (Tabelle) im Hintergrund für den Nutzer gefiltert wird, auch wenn du die Antwort bereits kennst.
 - ADD_TRANSACTION:{"name": "...", "kategorie": "...", "wert": -12.50, "sender": "...", "empfaenger": "..."} -> Fügt eine NEUE Transaktion hinzu.
 **WICHTIG:** Nutze ADD_TRANSACTION nur, wenn der Nutzer explizit darum bittet, etwas NEUES zu speichern. Nutze es NIEMALS, wenn du eine bereits existierende (angehängte) Transaktion analysierst!`;
 
@@ -29,6 +30,10 @@ Deine Aufgabe ist es, Nutzer bei der Analyse ihrer Finanzen zu unterstützen und
 
     document.body.insertAdjacentHTML('beforeend', `
         <div class="ai-chat-overlay" id="aiChatOverlay"></div>
+        <div class="joule-help-bubble" id="jouleHelpBubble">
+            Brauchst du Hilfe?
+            <span class="joule-help-bubble-close" id="jouleHelpBubbleClose">&times;</span>
+        </div>
         <aside class="ai-chat-panel" id="aiChatPanel" aria-label="Joule">
             <div class="ai-chat-header">
                 <div class="ai-chat-title">
@@ -64,6 +69,8 @@ Deine Aufgabe ist es, Nutzer bei der Analyse ihrer Finanzen zu unterstützen und
 
     const panel = document.getElementById('aiChatPanel');
     const overlay = document.getElementById('aiChatOverlay');
+    const helpBubble = document.getElementById('jouleHelpBubble');
+    const helpBubbleClose = document.getElementById('jouleHelpBubbleClose');
     const closeBtn = document.getElementById('aiChatClose');
     const clearBtn = document.getElementById('aiChatClear');
     const input = document.getElementById('aiChatInput');
@@ -72,6 +79,60 @@ Deine Aufgabe ist es, Nutzer bei der Analyse ihrer Finanzen zu unterstützen und
     const attachmentArea = document.getElementById('aiChatAttachmentArea');
     const attachmentName = document.getElementById('aiChatAttachmentName');
     const removeAttachment = document.getElementById('aiChatRemoveAttachment');
+
+    let inactivityTimer;
+    let isBubbleDismissed = false; // Prevents bubble from coming back in same session if X clicked
+
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        if (isPanelOpen || isBubbleDismissed) return;
+        
+        inactivityTimer = setTimeout(() => {
+            if (!isPanelOpen && !isBubbleDismissed && helpBubble) {
+                helpBubble.classList.add('show');
+            }
+        }, 60000); // 60 seconds
+    }
+
+    // Interaction listeners
+    window.addEventListener('mousemove', () => {
+        // Only reset if NOT showing, to allow clicking the bubble
+        if (!helpBubble.classList.contains('show')) resetInactivityTimer();
+    }, { passive: true });
+
+    window.addEventListener('scroll', () => {
+        if (!helpBubble.classList.contains('show')) resetInactivityTimer();
+    }, { passive: true });
+
+    window.addEventListener('keydown', () => {
+        if (helpBubble.classList.contains('show')) helpBubble.classList.remove('show');
+        resetInactivityTimer();
+    }, { passive: true });
+
+    window.addEventListener('click', (e) => {
+        // If clicking anywhere else than the bubble, hide it
+        if (helpBubble.classList.contains('show') && !helpBubble.contains(e.target)) {
+            helpBubble.classList.remove('show');
+        }
+        if (!isPanelOpen) resetInactivityTimer();
+    }, { passive: true });
+
+    if (helpBubble) {
+        helpBubble.onclick = (e) => {
+            e.stopPropagation();
+            helpBubble.classList.remove('show');
+            openChat();
+        };
+    }
+
+    if (helpBubbleClose) {
+        helpBubbleClose.onclick = (e) => {
+            e.stopPropagation(); // Don't open chat
+            helpBubble.classList.remove('show');
+            isBubbleDismissed = true; // Stay hidden
+            clearTimeout(inactivityTimer);
+        };
+    }
 
     function saveHistory() { localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory)); }
 
@@ -83,8 +144,21 @@ Deine Aufgabe ist es, Nutzer bei der Analyse ihrer Finanzen zu unterstützen und
         dot.style.display = show ? 'block' : 'none';
     }
 
-    function openChat() { panel.classList.add('open'); overlay.classList.add('open'); input.focus(); isPanelOpen = true; toggleNotificationDot(false); }
-    function closeChat() { panel.classList.remove('open'); overlay.classList.remove('open'); isPanelOpen = false; }
+    function openChat() { 
+        panel.classList.add('open'); 
+        overlay.classList.add('open'); 
+        if (helpBubble) helpBubble.classList.remove('show');
+        input.focus(); 
+        isPanelOpen = true; 
+        toggleNotificationDot(false); 
+        clearTimeout(inactivityTimer);
+    }
+    function closeChat() { 
+        panel.classList.remove('open'); 
+        overlay.classList.remove('open'); 
+        isPanelOpen = false; 
+        resetInactivityTimer();
+    }
 
     closeBtn.onclick = closeChat;
     overlay.onclick = closeChat;
@@ -106,6 +180,7 @@ Deine Aufgabe ist es, Nutzer bei der Analyse ihrer Finanzen zu unterstützen und
         else setTimeout(setupButton, 100);
     }
     setupButton();
+    resetInactivityTimer();
 
     input.oninput = function () { this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 120) + 'px'; };
     input.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
@@ -122,12 +197,16 @@ Deine Aufgabe ist es, Nutzer bei der Analyse ihrer Finanzen zu unterstützen und
     removeAttachment.onclick = () => { activeAttachment = null; attachmentArea.style.display = 'none'; };
 
     function appendMessage(text, role, attachment = null, save = true) {
-        const cleanText = text
+        let cleanText = text
+            .replace(/\[ANGEHÄNGTE TRANSAKTION:[\s\S]*?\]/gi, '')
             .replace(/QUERY:[\s\n]*\{[\s\S]*?\}/gi, '')
             .replace(/ADD_TRANSACTION:[\s\n]*\{[\s\S]*?\}/gi, '')
             .replace(/\bQUERY\b/g, '')
             .replace(/\bADD_TRANSACTION\b/g, '')
             .trim();
+        
+        // Remove trailing or leading newlines that might have been part of the technical prefix
+        cleanText = cleanText.replace(/^\s+|\s+$/g, '');
         
         if (!cleanText && role === 'assistant' && !attachment) return false; 
 
@@ -141,8 +220,24 @@ Deine Aufgabe ist es, Nutzer bei der Analyse ihrer Finanzen zu unterstützen und
 
         if (attachment) {
             const chip = document.createElement('div');
-            chip.style.cssText = 'display: inline-flex; align-items: center; background: #f3f0ff; border: 1px solid #6f42c1; border-radius: 8px; padding: 4px 8px; margin-bottom: 8px; font-size: 11px; color: #6f42c1; font-weight: bold;';
+            chip.className = 'attachment-chip-interactive';
+            chip.style.cssText = 'display: inline-flex; align-items: center; background: #f3f0ff; border: 1px solid #6f42c1; border-radius: 8px; padding: 4px 8px; margin-bottom: 8px; font-size: 11px; color: #6f42c1; font-weight: bold; cursor: pointer; transition: background 0.2s;';
             chip.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg> ${attachment.name || attachment.kategorie} (${parseFloat(attachment.wert).toFixed(2)}€)`;
+            
+            chip.onclick = (e) => {
+                e.stopPropagation();
+                // Close chat panel to show the result
+                closeChat();
+                // Trigger global search/filter for this transaction ID
+                document.dispatchEvent(new CustomEvent('forceFilter', { 
+                    detail: { 
+                        id: attachment.id,
+                        search: attachment.id ? "" : (attachment.name || attachment.kategorie),
+                        category: 'all' 
+                    } 
+                }));
+            };
+            
             bubble.appendChild(chip);
             if (cleanText) bubble.appendChild(document.createElement('br'));
         }
@@ -212,27 +307,57 @@ Deine Aufgabe ist es, Nutzer bei der Analyse ihrer Finanzen zu unterstützen und
 
         async function getAIResponse(history) {
             const chatMessages = [{ role: 'system', content: SYSTEM_PROMPT }].concat(history);
-            const response = await fetch(API_PROXY, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: chatMessages })
-            });
-            const result = await response.json();
-            if (response.status >= 400) throw new Error(result.error?.message || "Fehler");
-            return result.choices[0].message.content;
+            try {
+                const response = await fetch(API_PROXY, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: chatMessages })
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("API Error:", response.status, errorText);
+                    throw new Error("Fehler bei der Kommunikation mit dem Server.");
+                }
+
+                const result = await response.json();
+                if (!result.choices || !result.choices.length || !result.choices[0].message) {
+                    console.error("Unexpected API response format:", result);
+                    throw new Error("Ungültige Antwort vom KI-Dienst.");
+                }
+                
+                return result.choices[0].message.content;
+            } catch (error) {
+                console.error("getAIResponse failed:", error);
+                throw error;
+            }
         }
 
         try {
             let reply = await getAIResponse(chatHistory);
+            
+            // Clean up markdown code blocks if AI wraps the JSON in them
+            const cleanReply = reply.replace(/```json\n|\n```/g, '');
+            
             for (let i = 0; i < 3; i++) {
-                const qM = reply.match(/QUERY:[\s\n]*(\{[\s\S]*?\})/);
-                const aM = reply.match(/ADD_TRANSACTION:[\s\n]*(\{[\s\S]*?\})/);
+                // More robust regex to catch QUERY even if wrapped in text or markdown
+                const qM = cleanReply.match(/QUERY:\s*(\{[\s\S]*?\})/);
+                const aM = cleanReply.match(/ADD_TRANSACTION:\s*(\{[\s\S]*?\})/);
+                
                 if (qM) {
                     const criteria = JSON.parse(qM[1]);
-                    document.dispatchEvent(new CustomEvent('forceFilter', { detail: { category: criteria.category === 'all' ? 'all' : criteria.category, date: criteria.date || "", search: (criteria.name && criteria.name !== 'all') ? criteria.name : "" } }));
+                    
+                    // Build clean filter for UI
+                    const forceData = {};
+                    if (criteria.category) forceData.category = criteria.category;
+                    if (criteria.date) forceData.date = (criteria.date === 'all' ? '' : criteria.date);
+                    if (criteria.name) forceData.search = (criteria.name === 'all' ? '' : criteria.name);
+                    
+                    document.dispatchEvent(new CustomEvent('forceFilter', { detail: forceData }));
+
                     let url = `/api/transactions?limit=20`;
                     if (criteria.category && criteria.category !== 'all') url += `&category=${encodeURIComponent(criteria.category)}`;
                     if (criteria.name && criteria.name !== 'all') url += `&search=${encodeURIComponent(criteria.name)}`;
-                    if (criteria.date) url += `&date=${encodeURIComponent(criteria.date)}`;
+                    if (criteria.date && criteria.date !== 'all') url += `&date=${encodeURIComponent(criteria.date)}`;
                     const res = await fetch(url);
                     const data = await res.json();
                     const results = data.eintraege || [];

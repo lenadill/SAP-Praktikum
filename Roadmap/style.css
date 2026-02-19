@@ -177,12 +177,11 @@ body {
     inset: 0;
     background-image:
         linear-gradient(var(--grid-color) 1px, transparent 1px),
-        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
-        linear-gradient(var(--grid-color-strong) 2px, transparent 2px),
-        linear-gradient(90deg, var(--grid-color-strong) 2px, transparent 2px);
-    background-size: 60px 60px, 60px 60px, 300px 300px, 300px 300px;
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 100px 100px;
     pointer-events: none;
     z-index: 0;
+    will-change: transform;
 }
 
 /* Ambient glow */
@@ -209,6 +208,8 @@ body {
     height: 0;
     transform-style: preserve-3d;
     z-index: 2;
+    will-change: transform;
+    backface-visibility: hidden;
     /* transform is set by JS – no CSS transitions, animated via rAF */
 }
 
@@ -227,12 +228,14 @@ body {
     border-radius: 18px;
     background: var(--bg-card);
     border: 1px solid var(--border-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    /* Performance optimization: backdrop-filter is very expensive during animation */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     padding: 28px 32px;
-    transition: opacity 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+    transition: opacity 0.4s ease, border-color 0.4s ease;
     cursor: default;
-    will-change: opacity;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
 }
 
 /* ── Active card ── */

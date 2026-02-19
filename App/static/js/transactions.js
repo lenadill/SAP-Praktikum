@@ -21,6 +21,7 @@
         let currentSearchQuery = '';
         let currentPriceFilter = '';
         let currentDateFilter = '';
+        let currentIdFilter = '';
         let currentSortColumn = 'timestamp';
         let currentSortOrder = 'DESC';
         
@@ -48,6 +49,7 @@
             if (currentSearchQuery) url += `&search=${encodeURIComponent(currentSearchQuery)}`;
             if (currentPriceFilter) url += `&price=${encodeURIComponent(currentPriceFilter)}`;
             if (currentDateFilter) url += `&date=${encodeURIComponent(currentDateFilter)}`;
+            if (currentIdFilter) url += `&id=${encodeURIComponent(currentIdFilter)}`;
             url += `&sort=${currentSortColumn}&order=${currentSortOrder}`;
 
             fetch(url)
@@ -68,10 +70,16 @@
                 });
         }
 
+        function syncSearchActiveClass() {
+            const hasActiveFilter = !!(currentSearchQuery || currentIdFilter || currentDateFilter || (currentCategoryFilter !== 'all'));
+            document.body.classList.toggle('search-active', hasActiveFilter);
+        }
+
         function updateHeaderTags() {
             const titleEl = document.querySelector('.transactions-title');
             if (!titleEl) return;
             let html = 'Transactions';
+            if (currentIdFilter) html += ` <span style="font-size: 0.5em; vertical-align: middle; background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 12px; margin-left: 10px; font-weight: bold; display: inline-block;">Item ID: ${currentIdFilter} <span id="clearIdFilter" style="cursor:pointer; margin-left: 5px; font-weight: bold;">×</span></span>`;
             if (currentCategoryFilter !== 'all') html += ` <span style="font-size: 0.5em; vertical-align: middle; background: #f3f0ff; color: #6f42c1; padding: 4px 12px; border-radius: 12px; margin-left: 10px; font-weight: bold; display: inline-block;">${currentCategoryFilter} <span id="clearCatFilter" style="cursor:pointer; margin-left: 5px; font-weight: bold;">×</span></span>`;
             if (currentDateFilter) html += ` <span style="font-size: 0.5em; vertical-align: middle; background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 12px; margin-left: 10px; font-weight: bold; display: inline-block;">${currentDateFilter} <span id="clearDateFilter" style="cursor:pointer; margin-left: 5px; font-weight: bold;">×</span></span>`;
             if (currentSearchQuery) html += ` <span style="font-size: 0.5em; vertical-align: middle; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 12px; margin-left: 10px; font-weight: bold; display: inline-block;">"${currentSearchQuery}" <span id="clearSearchFilter" style="cursor:pointer; margin-left: 5px; font-weight: bold;">×</span></span>`;
@@ -80,15 +88,17 @@
                 html += ` <span style="font-size: 0.5em; vertical-align: middle; background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 12px; margin-left: 10px; font-weight: bold; display: inline-block;">Sorted: ${colLabel} ${currentSortOrder.toLowerCase()} <span id="clearSortFilter" style="cursor:pointer; margin-left: 5px; font-weight: bold;">×</span></span>`;
             }
             titleEl.innerHTML = html;
-            const cCat = document.getElementById('clearCatFilter'); if (cCat) cCat.onclick = (e) => { e.stopPropagation(); currentCategoryFilter = 'all'; applyFilter(); };
-            const cDate = document.getElementById('clearDateFilter'); if (cDate) cDate.onclick = (e) => { e.stopPropagation(); currentDateFilter = ''; loadTransactions(false); };
+            const cId = document.getElementById('clearIdFilter'); if (cId) cId.onclick = (e) => { e.stopPropagation(); currentIdFilter = ''; syncSearchActiveClass(); loadTransactions(false); };
+            const cCat = document.getElementById('clearCatFilter'); if (cCat) cCat.onclick = (e) => { e.stopPropagation(); currentCategoryFilter = 'all'; syncSearchActiveClass(); applyFilter(); };
+            const cDate = document.getElementById('clearDateFilter'); if (cDate) cDate.onclick = (e) => { e.stopPropagation(); currentDateFilter = ''; syncSearchActiveClass(); loadTransactions(false); };
             const cSearch = document.getElementById('clearSearchFilter'); if (cSearch) cSearch.onclick = (e) => { 
                 e.stopPropagation(); 
                 currentSearchQuery = ''; 
                 currentPriceFilter = '';
                 currentDateFilter = '';
+                currentIdFilter = ''; 
                 if(searchInput) searchInput.value = ''; 
-                document.body.classList.remove('search-active');
+                syncSearchActiveClass();
                 loadTransactions(false); 
             };
             const cSort = document.getElementById('clearSortFilter'); if (cSort) cSort.onclick = (e) => {
@@ -265,10 +275,31 @@
 
         loadTransactions();
         document.addEventListener('forceFilter', (e) => {
-            const { category, date, search } = e.detail;
-            if (category !== undefined) currentCategoryFilter = category;
-            if (date !== undefined) currentDateFilter = date;
-            if (search !== undefined) { currentSearchQuery = search; if (searchInput) searchInput.value = search; }
+            const { category, date, search, id } = e.detail;
+            
+            if (id !== undefined) {
+                currentIdFilter = id;
+                // When focusing on a specific ID, clear other restrictive filters
+                if (id) {
+                    currentCategoryFilter = 'all';
+                    currentDateFilter = '';
+                    currentSearchQuery = '';
+                    if (searchInput) searchInput.value = '';
+                }
+            } else {
+                // If no ID, use other filters normally
+                if (category !== undefined) currentCategoryFilter = category;
+                if (date !== undefined) currentDateFilter = date;
+                if (search !== undefined) { 
+                    currentSearchQuery = search; 
+                    if (searchInput) searchInput.value = search; 
+                }
+                currentIdFilter = ''; // Clear ID filter if we're doing a general filter
+            }
+
+            // Sync UI layout with search state
+            document.body.classList.toggle('search-active', !!(currentSearchQuery || currentIdFilter || currentDateFilter || (currentCategoryFilter !== 'all')));
+
             loadTransactions(false);
             document.dispatchEvent(new CustomEvent('categoryChanged', { detail: { category: currentCategoryFilter } }));
         });

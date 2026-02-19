@@ -178,17 +178,50 @@
             }
         }
 
-        revenue = new Array(labels.length).fill(null);
-        expenses = new Array(labels.length).fill(null);
+        revenue = new Array(labels.length).fill(0);
+        expenses = new Array(labels.length).fill(0);
 
-        // Find current bucket index to avoid showing 0 for future dates
+        data.forEach(t => {
+            const tDate = new Date(t.timestamp);
+            if (tDate >= startDate && tDate <= endDate) {
+                let idx = -1;
+                if (bucketType === 'month') {
+                    if (timeframe === 'year' || timeframe === 'last_year') {
+                        idx = tDate.getMonth();
+                    } else {
+                        const monthsDiff = (tDate.getFullYear() - startDate.getFullYear()) * 12 + (tDate.getMonth() - startDate.getMonth());
+                        idx = monthsDiff;
+                    }
+                } else if (bucketType === 'quarter_week') {
+                    const weekDiff = Math.floor((tDate - startDate) / (7 * 24 * 60 * 60 * 1000));
+                    idx = Math.min(weekDiff, 12);
+                } else {
+                    if (timeframe === 'week') {
+                        idx = (tDate.getDay() + 6) % 7;
+                    } else if (timeframe === 'month') {
+                        idx = tDate.getDate() - 1;
+                    } else {
+                        const daysDiff = Math.floor((tDate - startDate) / (1000 * 60 * 60 * 24));
+                        idx = daysDiff;
+                    }
+                }
+
+                if (idx >= 0 && idx < labels.length) {
+                    const val = parseFloat(t.wert);
+                    if (val > 0) revenue[idx] += val;
+                    else expenses[idx] += Math.abs(val);
+                }
+            }
+        });
+
+        // Find current bucket index for the "Today" line
         let currentBucketIdx = -1;
         if (timeframe === 'week') {
             currentBucketIdx = (now.getDay() + 6) % 7;
         } else if (timeframe === 'month') {
             currentBucketIdx = now.getDate() - 1;
         } else if (timeframe === 'year' || timeframe === 'last_year') {
-            currentBucketIdx = timeframe === 'year' ? now.getMonth() : 12; // All months for last year
+            currentBucketIdx = timeframe === 'year' ? now.getMonth() : 12;
         } else if (timeframe.includes('Q')) {
              const year = parseInt(timeframe.substring(0, 4));
              if (year < now.getFullYear()) currentBucketIdx = 13;
@@ -203,58 +236,17 @@
              }
         }
 
-        // Initialize occurring buckets with 0
-        for(let i=0; i<=currentBucketIdx && i<labels.length; i++) {
-            revenue[i] = 0;
-            expenses[i] = 0;
-        }
-
-        data.forEach(t => {
-            const tDate = new Date(t.timestamp);
-            if (tDate >= startDate && tDate <= endDate) {
-                let idx = -1;
-                if (bucketType === 'month') {
-                    if (timeframe === 'year' || timeframe === 'last_year') {
-                        idx = tDate.getMonth();
-                    } else {
-                        // Custom range months logic
-                        const monthsDiff = (tDate.getFullYear() - startDate.getFullYear()) * 12 + (tDate.getMonth() - startDate.getMonth());
-                        idx = monthsDiff;
-                    }
-                } else if (bucketType === 'quarter_week') {
-                    // Weekly aggregation for quarters
-                    const weekDiff = Math.floor((tDate - startDate) / (7 * 24 * 60 * 60 * 1000));
-                    idx = Math.min(weekDiff, 12); // Limit to 13 weeks (0-12)
-                } else {
-                    if (timeframe === 'week') {
-                        idx = (tDate.getDay() + 6) % 7;
-                    } else if (timeframe === 'month') {
-                        idx = tDate.getDate() - 1;
-                    } else {
-                        // Custom range days
-                        const daysDiff = Math.floor((tDate - startDate) / (1000 * 60 * 60 * 24));
-                        idx = daysDiff;
-                    }
-                }
-
-                if (idx >= 0 && idx < labels.length) {
-                    const val = parseFloat(t.wert);
-                    if (val > 0) revenue[idx] = (revenue[idx] || 0) + val;
-                    else expenses[idx] = (expenses[idx] || 0) + Math.abs(val);
-                }
-            }
-        });
-
+        // Totals should only sum up to Today
         const totals = {
             revenue: revenue.slice(0, currentBucketIdx + 1).reduce((a, b) => a + (b || 0), 0),
             expenses: expenses.slice(0, currentBucketIdx + 1).reduce((a, b) => a + (b || 0), 0)
         };
         totals.surplus = totals.revenue - totals.expenses;
 
-        // Propagate last values to future buckets for horizontal lines (visual only)
+        // Visual propagation: make it horizontal from today onwards
         if (currentBucketIdx >= 0 && currentBucketIdx < labels.length) {
-            const lastRev = revenue[currentBucketIdx] || 0;
-            const lastExp = expenses[currentBucketIdx] || 0;
+            const lastRev = revenue[currentBucketIdx];
+            const lastExp = expenses[currentBucketIdx];
             for (let i = currentBucketIdx + 1; i < labels.length; i++) {
                 revenue[i] = lastRev;
                 expenses[i] = lastExp;
