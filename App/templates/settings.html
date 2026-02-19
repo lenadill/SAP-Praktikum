@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Clarity - Settings</title>
 	<link rel="stylesheet" href="../static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         if (localStorage.getItem('sapAuth') !== 'true') {
             window.location.href = 'login.html';
@@ -147,6 +148,20 @@
                         </div>
                     </section>
 
+                    <!-- AI Assistant -->
+                    <section class="settings-section">
+                        <h3>AI Assistant (Joule)</h3>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Wie soll Joule dich nennen?</label>
+                                <p>Passe die Anrede deines KI-Assistenten an.</p>
+                            </div>
+                            <div class="settings-control">
+                                <input type="text" id="jouleNickname" class="settings-input" placeholder="z.B. Max" style="border: 1px solid #ddd; padding: 8px; border-radius: 6px;">
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- Security -->
                     <section class="settings-section">
                         <h3>Security</h3>
@@ -171,7 +186,7 @@
                     </section>
 
                     <div style="margin-top: 20px;">
-                        <button class="save-btn" onclick="alert('Settings saved!')" style="width: 100%; padding: 12px;">Save All Changes</button>
+                        <button class="save-btn" id="saveAllSettings" style="width: 100%; padding: 12px;">Save All Changes</button>
                     </div>
                 </div>
 			</div>
@@ -189,6 +204,39 @@
 	<script src="../static/js/dashboard.js"></script>
     <script src="../static/js/ai-chat.js"></script>
     <script src="../static/js/settings-search.js"></script>
+    <script>
+        // Load existing config
+        fetch('/api/config')
+            .then(res => res.json())
+            .then(config => {
+                if (config.user && config.user.nickname) {
+                    document.getElementById('jouleNickname').value = config.user.nickname;
+                }
+            })
+            .catch(err => console.error("Error loading config:", err));
+
+        // Save nickname on button click
+        document.getElementById('saveAllSettings').onclick = function() {
+            const nickname = document.getElementById('jouleNickname').value.trim();
+            fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user: { nickname: nickname }
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Einstellungen gespeichert! Joule wird dich ab jetzt so nennen.');
+                }
+            })
+            .catch(err => {
+                console.error("Error saving config:", err);
+                alert('Fehler beim Speichern der Einstellungen.');
+            });
+        };
+    </script>
     <button class="diamond-btn" title="Open AI Assistant" aria-label="Open AI Chat">
         <img src="../assets/icons/joule_logo.png" alt="AI Assistant">
     </button>
