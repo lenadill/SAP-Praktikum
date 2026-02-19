@@ -5,8 +5,13 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Clarity - Settings</title>
 	<link rel="stylesheet" href="../static/css/style.css">
+    <script>
+        if (localStorage.getItem('sapAuth') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
 </head>
-<body>
+<body data-require-auth="true">
 	<div class="container">
 		<aside class="sidebar">
             <div class="sidebar-header">
