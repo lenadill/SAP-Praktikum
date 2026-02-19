@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roadmap – Pitch Animation</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- START OVERLAY -->
+    <div id="start-overlay">
+        <div class="start-content">
+            <div class="start-badge">ROADMAP</div>
+            <h1 class="start-title">Die Zukunft unserer Plattform</h1>
+            <p class="start-subtitle">14 Verbesserungen · 5 Highlights im Detail</p>
+            <button id="start-btn">
+                <span class="btn-icon">▶</span>
+                <span>Präsentation starten</span>
+            </button>
+            <p class="start-hint">oder <kbd>Space</kbd> drücken</p>
+        </div>
+        <div class="start-bg-glow"></div>
+    </div>
+
+    <!-- MAIN 3D VIEWPORT -->
+    <div id="viewport">
+        <!-- Background grid -->
+        <div id="bg-grid"></div>
+
+        <!-- Progress bar -->
+        <div id="progress-bar">
+            <div id="progress-fill"></div>
+        </div>
+
+        <!-- Navigation hints -->
+        <div id="nav-hints">
+            <span><kbd>Space</kbd> Play/Pause</span>
+            <span><kbd>←</kbd> <kbd>→</kbd> Navigation</span>
+        </div>
+
+        <!-- 3D Card Scene -->
+        <div id="scene">
+            <!-- Cards injected by JS -->
+        </div>
+
+        <!-- Item counter -->
+        <div id="item-counter">
+            <span id="counter-current">0</span> / <span id="counter-total">14</span>
+        </div>
+    </div>
+
+    <!-- END SCREEN -->
+    <div id="end-screen" class="hidden">
+        <div class="end-content">
+            <div class="end-checkmark">✓</div>
+            <h1>Roadmap Complete</h1>
+            <p>14 Verbesserungen für die Zukunft unserer Plattform</p>
+            <button id="restart-btn">↻ Nochmal abspielen</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
