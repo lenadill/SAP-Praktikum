@@ -277,7 +277,107 @@
             }).then(() => { modal.style.display = 'none'; form.reset(); delete form.dataset.editId; loadTransactions(); document.dispatchEvent(new Event('dataUpdated')); });
         };
 
-        btnAdd.onclick = () => { if (form) form.reset(); delete form.dataset.editId; document.getElementById('tDate').value = new Date().toISOString().split('T')[0]; modal.style.display = 'flex'; };
+        const btnScanReceipt = document.getElementById('btnScanReceipt');
+        const qrCodeArea = document.getElementById('qrCodeArea');
+        const qrcodeImgContainer = document.getElementById('qrcode');
+        const btnCancelScan = document.getElementById('btnCancelScan');
+        const scanStatus = document.getElementById('scanStatus');
+        let scanPollInterval = null;
+
+        if (btnScanReceipt) {
+            btnScanReceipt.onclick = async () => {
+                try {
+                    const res = await fetch('/api/scan/init');
+                    const { sessionId, url } = await res.json();
+                    
+                    // Show QR Code Area
+                    qrCodeArea.style.display = 'block';
+                    form.style.display = 'none';
+                    
+                    // Generate QR Code via API
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
+                    qrcodeImgContainer.innerHTML = `<img src="${qrUrl}" alt="QR Code">`;
+                    
+                    // Start Polling
+                    startScanPolling(sessionId);
+                } catch (err) {
+                    console.error("Scan Init Error:", err);
+                    alert("Could not initialize scan session.");
+                }
+            };
+        }
+
+        if (btnCancelScan) {
+            btnCancelScan.onclick = () => {
+                stopScanPolling();
+                qrCodeArea.style.display = 'none';
+                form.style.display = 'block';
+            };
+        }
+
+        function startScanPolling(sessionId) {
+            if (scanPollInterval) clearInterval(scanPollInterval);
+            scanStatus.innerHTML = '<span class="dot-flashing"></span> Waiting for scan...';
+            
+            scanPollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/scan/status/${sessionId}`);
+                    const session = await res.json();
+                    
+                    if (session.status === 'completed') {
+                        stopScanPolling();
+                        fillFormFromScan(session.data);
+                        qrCodeArea.style.display = 'none';
+                        form.style.display = 'block';
+                    }
+                } catch (err) {
+                    console.error("Polling Error:", err);
+                }
+            }, 2000);
+        }
+
+        function stopScanPolling() {
+            if (scanPollInterval) clearInterval(scanPollInterval);
+            scanPollInterval = null;
+        }
+
+        function fillFormFromScan(data) {
+            if (!data) return;
+            console.log("Extracted Data:", data);
+            
+            if (data.name) document.getElementById('tName').value = data.name;
+            if (data.category) {
+                // Try to match category case-insensitively
+                const select = document.getElementById('tKategorie');
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value.toLowerCase() === data.category.toLowerCase()) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            if (data.amount) document.getElementById('tWert').value = Math.abs(data.amount);
+            if (data.sender) document.getElementById('tSender').value = data.sender;
+            if (data.recipient) document.getElementById('tEmpfaenger').value = data.recipient;
+            if (data.date) {
+                // Ensure YYYY-MM-DD format
+                const dateVal = data.date.split('T')[0];
+                document.getElementById('tDate').value = dateVal;
+            }
+            
+            // Set type based on amount (though receipts are usually expenses)
+            document.getElementById('tType').value = (data.amount && data.amount > 0) ? 'income' : 'expense';
+        }
+
+        btnAdd.onclick = () => { 
+            if (form) form.reset(); 
+            delete form.dataset.editId; 
+            document.getElementById('tDate').value = new Date().toISOString().split('T')[0]; 
+            modal.style.display = 'flex';
+            // Reset scan area
+            if (qrCodeArea) qrCodeArea.style.display = 'none';
+            if (form) form.style.display = 'block';
+        };
         if (btnCancel) btnCancel.onclick = () => modal.style.display = 'none';
 
         loadTransactions();

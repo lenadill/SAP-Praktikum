@@ -836,6 +836,50 @@ input:checked + .slider:before {
 }
 
 /* ── KI-Chat Seitenfenster ── */
+.dot-flashing {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #6f42c1;
+  color: #6f42c1;
+  animation: dot-flashing 1s infinite linear alternate;
+  animation-delay: 0.5s;
+  display: inline-block;
+  margin-right: 20px;
+  margin-left: 10px;
+}
+.dot-flashing::before, .dot-flashing::after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+.dot-flashing::before {
+  left: -15px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #6f42c1;
+  color: #6f42c1;
+  animation: dot-flashing 1s infinite alternate;
+  animation-delay: 0s;
+}
+.dot-flashing::after {
+  left: 15px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #6f42c1;
+  color: #6f42c1;
+  animation: dot-flashing 1s infinite alternate;
+  animation-delay: 1s;
+}
+@keyframes dot-flashing {
+  0% { background-color: #6f42c1; }
+  50%, 100% { background-color: rgba(111, 66, 193, 0.2); }
+}
+
 .ai-chat-overlay {
     display: none;
     position: fixed;

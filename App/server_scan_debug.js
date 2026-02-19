@@ -24,7 +24,7 @@ try { if (!fetchFn) fetchFn = require('node-fetch'); } catch (e) {}
 
 const GROQ_KEY   = process.env.GROQ_API_KEY;
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-const VISION_MODEL = 'llama-3.2-90b-vision-preview';
+const VISION_MODEL = 'llama-3.2-11b-vision-preview';
 
 let userConfig = {};
 try { if (fs.existsSync(CONFIG_PATH)) userConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')); } catch (e) {}
@@ -33,6 +33,7 @@ const scanSessions = {};
 
 app.use(express.json());
 
+// Scan Routes
 app.get('/scan/:sessionId', (req, res) => {
     res.sendFile(path.join(APP_DIR, 'templates', 'scan.html'));
 });
@@ -59,10 +60,12 @@ app.post('/api/scan/upload', upload.single('receipt'), async (req, res) => {
     }
 
     try {
+        console.log(">>> Processing receipt upload for session:", sessionId);
         const imageBuffer = fs.readFileSync(req.file.path);
         const base64Image = imageBuffer.toString('base64');
         const mimeType = req.file.mimetype;
 
+        console.log(">>> Calling Groq Vision API...");
         const resp = await fetchFn("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_KEY },
@@ -72,7 +75,7 @@ app.post('/api/scan/upload', upload.single('receipt'), async (req, res) => {
                     {
                         role: "user",
                         content: [
-                            { type: "text", text: "Analyze receipt: name, category, amount, sender, recipient, date. Return JSON." },
+                            { type: "text", text: "Analyze this receipt and extract: name (store name), category (Income, Housing, Transportation, Food, Leisure, Shopping, or Miscellaneous), amount (numeric value only), sender (usually the store), recipient (use 'SAP'), and date (YYYY-MM-DD). Return ONLY a JSON object." },
                             { type: "image_url", image_url: { url: `data:${mimeType};base64,${base64Image}` } }
                         ]
                     }
@@ -82,20 +85,29 @@ app.post('/api/scan/upload', upload.single('receipt'), async (req, res) => {
         });
 
         const result = await resp.json();
-        if (result.error) throw new Error(`Groq API Error: ${result.error.message}`);
-        
+        console.log(">>> Groq Vision Response:", JSON.stringify(result, null, 2));
+
+        if (result.error) {
+            throw new Error(`Groq API Error: ${result.error.message || JSON.stringify(result.error)}`);
+        }
+
+        if (!result.choices || !result.choices[0]) {
+            throw new Error("Groq API returned no choices.");
+        }
+
         const extractedData = JSON.parse(result.choices[0].message.content);
         scanSessions[sessionId] = { status: 'completed', data: extractedData };
         
         fs.unlinkSync(req.file.path);
         res.json({ success: true });
     } catch (err) {
-        console.error("Scan Error:", err);
+        console.error("!!! Scan Error:", err);
         if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         res.status(500).json({ error: err.message });
     }
 });
 
+// Config API
 app.get("/api/config", (req, res) => res.json(userConfig));
 app.post("/api/config", (req, res) => {
     if (req.body.user) userConfig.user = { ...userConfig.user, ...req.body.user };
@@ -138,6 +150,7 @@ app.delete('/api/transactions/:id', (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
   try {
+    const summary = "Guthaben vorhanden.";
     const clientMessages = (req.body.messages || []).map(({attachment, ...rest}) => rest).filter(m => m.role !== 'system');
     const nickname = userConfig.user?.nickname || userConfig.user?.full_name || "Nutzer";
     const systemPrompt = `Du bist Joule. Professionell. Nutzer: ${nickname}.`;
@@ -151,4 +164,4 @@ app.post('/api/chat', async (req, res) => {
   } catch (err) { res.status(500).json({error: 'Proxy error'}); }
 });
 
-app.listen(3000, () => console.log('>>> JOULE SYSTEM FINAL READY - ' + new Date().toLocaleTimeString()));
+app.listen(3000, () => console.log('>>> JOULE DEBUG SERVER ONLINE'));
