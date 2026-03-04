@@ -28,7 +28,7 @@
 					<p class="subtext">Log in with your credentials to open the dashboard.</p>
 				</div>
 
-				<form id="loginForm" class="login-form" novalidate>
+				<form id="loginForm" class="login-form" method="POST" novalidate>
 					<label for="email">Email</label>
 					<input id="email" name="email" type="email" placeholder="name@company.com" required>
 
@@ -45,6 +45,14 @@
 
 					<button type="submit" class="login-button">Login</button>
 					<p id="loginError" class="login-error" aria-live="polite"></p>
+                    <div style="margin-top: 25px; text-align: center; font-size: 0.95em; color: #64748b; display: flex; flex-direction: column; gap: 15px;">
+                        <div style="padding: 12px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                            Got an invite code? <a href="/signup" class="link" style="font-weight: 700; color: #6f42c1;">Join your team</a>
+                        </div>
+                        <div style="font-size: 0.85em; opacity: 0.8;">
+                            Need to onboard a new organization? <a href="/register-company" class="link" style="font-weight: 600;">Register Company</a>
+                        </div>
+                    </div>
 				</form>
 			</div>
 		</div>

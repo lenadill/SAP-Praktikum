@@ -3,8 +3,16 @@ window.DataManager = (function() {
 
     async function fetchTransactions() {
         try {
+            const userStr = localStorage.getItem('clarityUser');
+            let userIdQuery = '';
+            let companyIdQuery = '';
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                if (user.id) userIdQuery = `&user_id=${user.id}`;
+                if (user.company_id) companyIdQuery = `&company_id=${user.company_id}`;
+            }
             // Fetch a high limit to ensure the graph has all data points
-            const res = await fetch('/api/transactions?limit=10000');
+            const res = await fetch(`/api/transactions?limit=10000${userIdQuery}${companyIdQuery}`);
             const data = await res.json();
             transactions = data.eintraege || [];
             console.log("DataManager: " + transactions.length + " Transaktionen geladen.");

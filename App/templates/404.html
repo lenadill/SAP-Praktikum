@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clarity - 404 Not Found</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/auth.js"></script>
+    <style>
+        .error-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: radial-gradient(circle at 15% 20%, rgba(99, 195, 255, 0.14), transparent 26%),
+                        radial-gradient(circle at 90% 10%, rgba(159, 90, 253, 0.16), transparent 30%),
+                        linear-gradient(135deg, #f8fafc, #e2e8f0);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .error-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 550px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(15, 76, 129, 0.15), 0 0 0 1px rgba(255,255,255,0.6) inset;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .error-number {
+            font-size: 130px;
+            font-weight: 900;
+            line-height: 1;
+            margin: 0;
+            background: linear-gradient(135deg, #0f4c81 0%, #0d82d8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 30px rgba(13, 130, 216, 0.2);
+            position: relative;
+            z-index: 2;
+        }
+
+        .error-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0b2948;
+            margin: 10px 0 20px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .error-desc {
+            font-size: 1.15rem;
+            color: #64748b;
+            line-height: 1.7;
+            margin-bottom: 45px;
+            z-index: 2;
+            position: relative;
+            padding: 0 20px;
+        }
+
+        .home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #0f6ab6, #0f88e2);
+            color: white;
+            text-decoration: none;
+            padding: 16px 36px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            box-shadow: 0 10px 25px rgba(15, 106, 182, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .home-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(15, 106, 182, 0.4);
+            color: white;
+        }
+        
+        .home-btn:active {
+            transform: translateY(0);
+        }
+
+        .home-btn svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .home-btn:hover svg {
+            transform: translateX(-4px);
+        }
+
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(13, 130, 216, 0.1), transparent 70%);
+            z-index: 1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .float-1 {
+            width: 250px;
+            height: 250px;
+            top: -60px;
+            left: -60px;
+        }
+
+        .float-2 {
+            width: 180px;
+            height: 180px;
+            bottom: -40px;
+            right: -30px;
+            animation-delay: -3s;
+            background: radial-gradient(circle at 30% 30%, rgba(111, 66, 193, 0.08), transparent 70%);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.05); }
+        }
+
+        .logo-container {
+            margin-top: 50px;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo-container:hover {
+            opacity: 1;
+        }
+
+        .logo-container img {
+            max-width: 90px;
+            filter: grayscale(100%) opacity(0.6);
+            transition: filter 0.3s;
+        }
+        
+        .logo-container:hover img {
+            filter: grayscale(0%) opacity(1);
+        }
+
+        @media (max-width: 600px) {
+            .error-card { padding: 40px 20px; }
+            .error-number { font-size: 100px; }
+            .error-title { font-size: 24px; }
+            .error-desc { padding: 0; font-size: 1.05rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-card">
+            <!-- Decorative background elements -->
+            <div class="floating-element float-1"></div>
+            <div class="floating-element float-2"></div>
+            
+            <h1 class="error-number">404</h1>
+            <h2 class="error-title">Lost in the numbers?</h2>
+            <p class="error-desc">
+                It seems the page you're looking for has been moved, deleted, or doesn't exist. Let's get your finances back on track.
+            </p>
+            
+            <a href="/" class="home-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Return to Dashboard
+            </a>
+
+            <div class="logo-container">
+                <img src="../assets/pictures/clarity_logo.png" alt="Clarity Logo">
+            </div>
+        </div>
+    </div>
+</body>
+</html>

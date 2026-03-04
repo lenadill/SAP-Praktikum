@@ -44,7 +44,17 @@
                 currentOffset = 0; hasMore = true;
                 if (tableEl) tableEl.classList.add('is-loading');
             }
-            let url = `/api/transactions?limit=${PAGE_SIZE}&offset=${currentOffset}`;
+
+            const userStr = localStorage.getItem('clarityUser');
+            let userIdQuery = '';
+            let companyIdQuery = '';
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                if (user.id) userIdQuery = `&user_id=${user.id}`;
+                if (user.company_id) companyIdQuery = `&company_id=${user.company_id}`;
+            }
+
+            let url = `/api/transactions?limit=${PAGE_SIZE}&offset=${currentOffset}${userIdQuery}${companyIdQuery}`;
             if (currentCategoryFilter !== 'all') url += `&category=${encodeURIComponent(currentCategoryFilter)}`;
             if (currentSearchQuery) url += `&search=${encodeURIComponent(currentSearchQuery)}`;
             if (currentPriceFilter) url += `&price=${encodeURIComponent(currentPriceFilter)}`;
@@ -244,7 +254,15 @@
         };
 
         cmDelete.onclick = () => {
-            if (selectedTransactionId && confirm('Really delete?')) fetch('/api/transactions/' + selectedTransactionId, { method: 'DELETE' }).then(() => { loadTransactions(); document.dispatchEvent(new Event('dataUpdated')); });
+            if (selectedTransactionId && confirm('Really delete?')) {
+                const userStr = localStorage.getItem('clarityUser');
+                let companyIdQuery = '';
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    if (user.company_id) companyIdQuery = `?company_id=${user.company_id}`;
+                }
+                fetch('/api/transactions/' + selectedTransactionId + companyIdQuery, { method: 'DELETE' }).then(() => { loadTransactions(); document.dispatchEvent(new Event('dataUpdated')); });
+            }
         };
 
         cmEdit.onclick = () => {
@@ -260,10 +278,22 @@
         form.onsubmit = (e) => {
             e.preventDefault(); const editId = form.dataset.editId; let wert = parseFloat(document.getElementById('tWert').value);
             if (document.getElementById('tType').value === 'expense') wert = -Math.abs(wert);
+            
+            const userStr = localStorage.getItem('clarityUser');
+            let userId = null;
+            let companyId = null;
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                userId = user.id;
+                companyId = user.company_id;
+            }
+
             const payload = {
                 name: document.getElementById('tName').value, kategorie: document.getElementById('tKategorie').value,
                 wert: wert, sender: document.getElementById('tSender').value, empfaenger: document.getElementById('tEmpfaenger').value,
-                timestamp: new Date(document.getElementById('tDate').value).toISOString()
+                timestamp: new Date(document.getElementById('tDate').value).toISOString(),
+                user_id: userId,
+                company_id: companyId
             };
             fetch(editId ? '/api/transactions/' + editId : '/api/transactions', {
                 method: editId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)

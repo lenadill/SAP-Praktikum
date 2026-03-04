@@ -6,11 +6,21 @@
 	<title>Clarity - Settings</title>
 	<link rel="stylesheet" href="../static/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script>
-        if (localStorage.getItem('clarityAuth') !== 'true') {
-            window.location.href = 'login.html';
+    <script src="../static/js/auth.js"></script>
+    <style>
+        .demo-badge {
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 0.7em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-left: 8px;
+            vertical-align: middle;
+            border: 1px solid #e2e8f0;
         }
-    </script>
+    </style>
 </head>
 <body data-require-auth="true">
 	<div class="container">
@@ -21,25 +31,25 @@
             <nav>
                 <ul class="menu">
                     <li class="menu-item">
-                        <a href="index.html">
+                        <a href="/">
                             <span class="menu-icon"></span>
                             <span>Home</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="dashboard.html">
+                        <a href="/dashboard">
                             <span class="menu-icon"></span>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="menu-item active">
-                        <a href="settings.html">
+                        <a href="/settings">
                             <span class="menu-icon"></span>
                             <span>Settings</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="support.html">
+                        <a href="/support">
                             <span class="menu-icon"></span>
                             <span>Support</span>
                         </a>
@@ -47,22 +57,28 @@
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <a href="logout.html" class="logout-btn">Log Out</a>
+                <a href="/logout" class="logout-btn">Log Out</a>
             </div>
         </aside>
 
 		<main class="main-content">
-			<div class="header">
-                <div class="header-left">
+			<div class="header" style="display: flex; align-items: center;">
+                <div class="header-left" style="flex: 1;">
 				    <h1>Clarity Settings</h1>
                     <span id="app-version" class="version-tag">...</span>
                 </div>
-                <div class="header-right">
+                <div class="header-center" style="flex: 2; display: flex; justify-content: center;">
                     <div class="search-container">
                         <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         <input type="text" id="settingsSearch" class="search-input" placeholder="Search settings" aria-label="Search">
                         <span id="clearSettingsSearch" class="search-clear" title="Clear search">&times;</span>
                     </div>
+                </div>
+                <div class="header-right" style="flex: 1; display: flex; justify-content: flex-end;">
+                    <a href="/settings" class="header-profile-link" style="text-decoration: none; color: #1e293b; font-weight: 600; padding: 8px 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; transition: background 0.2s;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6f42c1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span class="name-text">Profile</span>
+                    </a>
                 </div>
 			</div>
 
@@ -74,26 +90,32 @@
                         <div class="settings-row">
                             <div class="settings-info">
                                 <label>Name</label>
-                                <p>Maximilian Mustermann</p>
-                            </div>
-                            <div class="settings-control">
-                                <button class="save-btn" style="padding: 6px 14px; font-size: 0.8rem;">Edit</button>
+                                <p id="profileName">Loading...</p>
                             </div>
                         </div>
                         <div class="settings-row">
                             <div class="settings-info">
                                 <label>Email</label>
-                                <p>m.mustermann@clarity.com</p>
+                                <p id="profileEmail">Loading...</p>
                             </div>
-                            <div class="settings-control">
-                                <button class="save-btn" style="padding: 6px 14px; font-size: 0.8rem;">Edit</button>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Organization</label>
+                                <p id="profileOrg">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label>Role</label>
+                                <p id="profileRole">Loading...</p>
                             </div>
                         </div>
                     </section>
 
                     <!-- Notifications -->
                     <section class="settings-section">
-                        <h3>Notifications</h3>
+                        <h3>Notifications <span class="demo-badge">Demo</span></h3>
                         <div class="settings-row">
                             <div class="settings-info">
                                 <label>Email Notifications</label>
@@ -101,7 +123,7 @@
                             </div>
                             <div class="settings-control">
                                 <label class="switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" checked disabled>
                                     <span class="slider"></span>
                                 </label>
                             </div>
@@ -113,7 +135,7 @@
                             </div>
                             <div class="settings-control">
                                 <label class="switch">
-                                    <input type="checkbox">
+                                    <input type="checkbox" disabled>
                                     <span class="slider"></span>
                                 </label>
                             </div>
@@ -122,14 +144,14 @@
 
                     <!-- Display Settings -->
                     <section class="settings-section">
-                        <h3>Display Settings</h3>
+                        <h3>Display Settings <span class="demo-badge">Demo</span></h3>
                         <div class="settings-row">
                             <div class="settings-info">
                                 <label>Dashboard Language</label>
                                 <p>Select your preferred language for the interface.</p>
                             </div>
                             <div class="settings-control">
-                                <select class="settings-input">
+                                <select class="settings-input" disabled>
                                     <option value="de">Deutsch</option>
                                     <option value="en" selected>English</option>
                                     <option value="fr">Français</option>
@@ -142,7 +164,7 @@
                                 <p>Set the primary currency for all financial reports.</p>
                             </div>
                             <div class="settings-control">
-                                <select class="settings-input">
+                                <select class="settings-input" disabled>
                                     <option value="eur" selected>Euro (€)</option>
                                     <option value="usd">US Dollar ($)</option>
                                     <option value="gbp">British Pound (£)</option>
@@ -167,14 +189,14 @@
 
                     <!-- Security -->
                     <section class="settings-section">
-                        <h3>Security</h3>
+                        <h3>Security <span class="demo-badge">Demo</span></h3>
                         <div class="settings-row">
                             <div class="settings-info">
                                 <label>Password</label>
-                                <p>Last changed 3 months ago.</p>
+                                <p>Manage your login credentials.</p>
                             </div>
                             <div class="settings-control">
-                                <button class="save-btn">Change Password</button>
+                                <button class="save-btn" disabled style="opacity: 0.6; cursor: not-allowed;">Change Password</button>
                             </div>
                         </div>
                         <div class="settings-row">
@@ -183,13 +205,27 @@
                                 <p>Add an extra layer of security to your account.</p>
                             </div>
                             <div class="settings-control">
-                                <button class="save-btn" style="background-color: #2c3e50;">Enable 2FA</button>
+                                <button class="save-btn" style="background-color: #2c3e50; opacity: 0.6; cursor: not-allowed;" disabled>Enable 2FA</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Account Deletion -->
+                    <section class="settings-section" style="border: 1px solid #fee2e2; background: #fffafb;">
+                        <h3 style="color: #991b1b;">Danger Zone</h3>
+                        <div class="settings-row">
+                            <div class="settings-info">
+                                <label style="color: #991b1b;">Delete Account</label>
+                                <p>Once you delete your account, there is no going back. Please be certain.</p>
+                            </div>
+                            <div class="settings-control">
+                                <button class="save-btn" id="btnDeleteAccount" style="background-color: #dc2626;">Delete Account</button>
                             </div>
                         </div>
                     </section>
 
                     <div style="margin-top: 20px;">
-                        <button class="save-btn" id="saveAllSettings" style="width: 100%; padding: 12px;">Save All Changes</button>
+                        <button class="save-btn" id="saveAllSettings" style="width: 100%; padding: 12px;">Save Changes</button>
                     </div>
                 </div>
 			</div>
@@ -197,8 +233,8 @@
             <footer class="app-footer">
                 <p>&copy; 2026 Clarity - An Intelligent Financial Tracker <span class="footer-version"></span></p>
                 <div class="footer-links">
-                    <a href="#">Terms of Service</a>
-                    <a href="#">Impressum</a>
+                    <a href="/tos">Terms of Service</a>
+                    <a href="/impressum">Impressum</a>
                 </div>
             </footer>
 		</main>
@@ -208,7 +244,19 @@
     <script src="../static/js/ai-chat.js"></script>
     <script src="../static/js/settings-search.js"></script>
     <script>
-        // Load existing config
+        // Fill profile data from localStorage
+        const userStr = localStorage.getItem('clarityUser');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                document.getElementById('profileName').textContent = user.full_name || 'N/A';
+                document.getElementById('profileEmail').textContent = user.email || 'N/A';
+                document.getElementById('profileOrg').textContent = user.company_name || 'Independent';
+                document.getElementById('profileRole').textContent = (user.role || 'user').toUpperCase();
+            } catch(e) { console.error("Error parsing user data", e); }
+        }
+
+        // Load existing AI config
         fetch('/api/config')
             .then(res => res.json())
             .then(config => {
@@ -231,13 +279,40 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    alert('Einstellungen gespeichert! Joule wird dich ab jetzt so nennen.');
+                    alert('Settings updated! Joule will address you as ' + (nickname || 'Nutzer') + ' from now on.');
                 }
             })
             .catch(err => {
                 console.error("Error saving config:", err);
-                alert('Fehler beim Speichern der Einstellungen.');
+                alert('Error saving settings.');
             });
+        };
+
+        // Delete Account Logic
+        document.getElementById('btnDeleteAccount').onclick = async function() {
+            const userStr = localStorage.getItem('clarityUser');
+            if (!userStr) return;
+            const user = JSON.parse(userStr);
+
+            const confirmation = confirm("WARNING: Are you absolutely sure you want to delete your account? This action cannot be undone.");
+            if (!confirmation) return;
+
+            const finalCheck = prompt("Please type 'DELETE' to confirm account removal:");
+            if (finalCheck !== 'DELETE') return;
+
+            try {
+                const res = await fetch(`/api/users/${user.id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert("Account deleted successfully.");
+                    window.location.href = '/logout';
+                } else {
+                    const data = await res.json();
+                    alert("Error: " + (data.error || "Could not delete account"));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server error.");
+            }
         };
     </script>
     <button class="diamond-btn" title="Open AI Assistant" aria-label="Open AI Chat">
@@ -245,4 +320,3 @@
     </button>
 </body>
 </html>
-

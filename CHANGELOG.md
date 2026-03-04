@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.5] - 2026-03-04
+### Added
+- Implementierung der Seiten "Terms of Service" (`tos.html`) und "Impressum" (`impressum.html`).
+- Verknüpfung der Platzhalter-Links im Footer aller App-Seiten mit den neuen rechtlichen Dokumenten.
+- Einbettung des einheitlichen Clarity-Designs (Sidebar, Header, Footer) in die rechtlichen Seiten.
+
 ## [0.3.4] - 2026-03-04
 ### Added
 - Dynamische Filterung der Dashboard-Zeiträume: Der Selektor zeigt nun nur noch Jahre und Quartale an, für die tatsächlich Transaktionsdaten in der Datenbank existieren.

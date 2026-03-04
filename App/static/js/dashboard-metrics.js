@@ -82,7 +82,15 @@
     }
 
     function fetchAndRefresh() {
-        let url = '/api/transactions?limit=10000';
+        const userStr = localStorage.getItem('clarityUser');
+        let userIdQuery = '';
+        let companyIdQuery = '';
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            if (user.id) userIdQuery = `&user_id=${user.id}`;
+            if (user.company_id) companyIdQuery = `&company_id=${user.company_id}`;
+        }
+        let url = `/api/transactions?limit=10000${userIdQuery}${companyIdQuery}`;
         if (currentCategory !== 'all') url += '&category=' + encodeURIComponent(currentCategory);
 
         fetch(url)

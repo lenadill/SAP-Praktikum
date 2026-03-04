@@ -6,11 +6,7 @@
     <title>Clarity - Dashboard</title>
     <link rel="stylesheet" href="../static/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script>
-        if (localStorage.getItem('clarityAuth') !== 'true') {
-            window.location.href = 'login.html';
-        }
-    </script>
+    <script src="../static/js/auth.js"></script>
 
 <style>
 </style>
@@ -25,25 +21,25 @@
             <nav>
                 <ul class="menu">
                     <li class="menu-item">
-                        <a href="index.html">
+                        <a href="/">
                             <span class="menu-icon"></span>
                             <span>Home</span>
                         </a>
                     </li>
                     <li class="menu-item active">
-                        <a href="dashboard.html">
+                        <a href="/dashboard">
                             <span class="menu-icon"></span>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="settings.html">
+                        <a href="/settings">
                             <span class="menu-icon"></span>
                             <span>Settings</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="support.html">
+                        <a href="/support">
                             <span class="menu-icon"></span>
                             <span>Support</span>
                         </a>
@@ -51,23 +47,29 @@
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <a href="logout.html" class="logout-btn">Log Out</a>
+                <a href="/logout" class="logout-btn">Log Out</a>
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="header">
-                <div class="header-left">
+            <div class="header" style="display: flex; align-items: center;">
+                <div class="header-left" style="flex: 1;">
                     <h1>Clarity Dashboard</h1>
                     <span id="app-version" class="version-tag">...</span>
                 </div>
-                <div class="header-right">
+                <div class="header-center" style="flex: 2; display: flex; justify-content: center;">
                     <div class="search-container">
                         <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         <input type="text" id="globalSearch" class="search-input" placeholder="Search transactions or date" aria-label="Search">
                         <span id="clearSearch" class="search-clear" title="Clear search">&times;</span>
                     </div>
+                </div>
+                <div class="header-right" style="flex: 1; display: flex; justify-content: flex-end;">
+                    <a href="/settings" class="header-profile-link" style="text-decoration: none; color: #1e293b; font-weight: 600; padding: 8px 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; transition: background 0.2s;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6f42c1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span class="name-text">Profile</span>
+                    </a>
                 </div>
             </div>
 
@@ -196,14 +198,12 @@
             <footer class="app-footer">
                 <p>&copy; 2026 Clarity - An Intelligent Financial Tracker <span class="footer-version"></span></p>
                 <div class="footer-links">
-                    <a href="#">Terms of Service</a>
-                    <a href="#">Impressum</a>
-                </div>
-            </footer>
+                	<a href="/tos">Terms of Service</a>
+                	<a href="/impressum">Impressum</a>
+                </div>            </footer>
         </main>
     </div>
 
-    <script src="../static/js/auth.js"></script>        
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../static/js/dashboard.js"></script>
     <script src="../static/js/ai-chat.js"></script>

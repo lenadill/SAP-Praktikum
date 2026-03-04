@@ -1,9 +1,21 @@
 (function () {
     const API_PROXY = '/api/chat';
-    const STORAGE_KEY = 'joule_chat_history';
-    const SYSTEM_PROMPT = `You are Joule, the intelligent AI assistant for "Clarity", an advanced financial dashboard. 
-Your task is to support users in analyzing their finances and provide advice as a Personal Finance Advisor when needed.
 
+    // Get user details
+    const userStr = localStorage.getItem('clarityUser');
+    let userId = 'guest';
+    let companyId = null;
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            if (user.id) userId = user.id;
+            if (user.company_id) companyId = user.company_id;
+        } catch(e) {}
+    }
+
+    const STORAGE_KEY = `joule_chat_history_${userId}`;
+    const SYSTEM_PROMPT = `You are Joule, the intelligent AI assistant for "Clarity", an advanced financial dashboard.
+Your task is to support users in analyzing their finances and provide advice as a Personal Finance Advisor when needed.
 ### CONTEXT:
 - This app is called "Clarity". It is an intelligent tool for tracking transactions (income/expenses).
 - There is a dashboard (overview), a transaction list, and a support page.
@@ -310,7 +322,7 @@ Your task is to support users in analyzing their finances and provide advice as 
             try {
                 const response = await fetch(API_PROXY, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: chatMessages })
+                    body: JSON.stringify({ messages: chatMessages, company_id: companyId })
                 });
                 
                 if (!response.ok) {

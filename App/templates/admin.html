@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Clarity - Admin Panel</title>
+	<link rel="stylesheet" href="../static/css/style.css">
+    <script src="../static/js/auth.js"></script>
+    <script>
+        (function() {
+            const userStr = localStorage.getItem('clarityUser');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                if (user.role !== 'admin') window.location.href = '/dashboard';
+            }
+        })();
+    </script>
+    <style>
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+        .invite-list { margin-top: 20px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: white; }
+        .invite-item { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #f1f5f9; }
+        .invite-item:last-child { border-bottom: none; }
+        .code-pill { font-family: monospace; font-weight: bold; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; color: #475569; }
+        .status-badge { font-size: 0.75em; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
+        .status-active { background: #ecfdf5; color: #059669; }
+        .status-expired { background: #fff7ed; color: #c2410c; }
+        .status-used { background: #f1f5f9; color: #64748b; }
+        .btn-cancel { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; transition: 0.2s; }
+        .btn-cancel:hover { background: #fecaca; }
+        .btn-icon { 
+            background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; 
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; 
+            border-radius: 8px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-icon:hover { background: #e2e8f0; color: #6f42c1; border-color: #6f42c1; }
+        .employee-row { cursor: context-menu; transition: background 0.2s; }
+        .employee-row:hover { background: #f8fafc; }
+        
+        /* Remove hover effect from static admin cards */
+        .admin-grid .link-card:hover {
+            transform: none !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important;
+            cursor: default;
+        }
+    </style>
+</head>
+<body data-require-auth="true">
+	<div class="container">
+		<aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="../assets/pictures/clarity_logo.png" alt="Clarity" class="sidebar-logo">
+            </div>
+            <nav>
+                <ul class="menu">
+                    <li class="menu-item">
+                        <a href="/">
+                            <span class="menu-icon"></span>
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/dashboard">
+                            <span class="menu-icon"></span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/settings">
+                            <span class="menu-icon"></span>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/support">
+                            <span class="menu-icon"></span>
+                            <span>Support</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/logout" class="logout-btn">Log Out</a>
+            </div>
+        </aside>
+
+		<main class="main-content">
+			<div class="header" style="display: flex; align-items: center;">
+                <div class="header-left" style="flex: 1;">
+				    <h1>Admin Panel</h1>
+                </div>
+                <div class="header-center" style="flex: 2; display: flex; justify-content: center;">
+                </div>
+                <div class="header-right" style="flex: 1; display: flex; justify-content: flex-end;">
+                    <a href="/settings" class="header-profile-link" style="text-decoration: none; color: #1e293b; font-weight: 600; padding: 8px 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6f42c1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span class="name-text">Profile</span>
+                    </a>
+                </div>
+			</div>
+
+			<section class="hero-section">
+				<h2>Organization Management</h2>
+				<p>Manage employee access and monitor active invitation codes.</p>
+			</section>
+
+			<div class="admin-grid">
+				<div class="link-card" style="cursor: default;">
+					<h3>Generate New Invite</h3>
+					<p>Create a single-use code for a new team member.</p>
+                    
+                    <div style="margin-top: 20px;">
+                        <label style="font-size: 0.85em; font-weight: bold; color: #64748b;">EXPIRATION</label>
+                        <select id="inviteExpiry" style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <option value="24">24 Hours</option>
+                            <option value="48">48 Hours</option>
+                            <option value="168">7 Days</option>
+                            <option value="0">Never expires</option>
+                        </select>
+                    </div>
+
+                    <button class="support-btn" style="margin-top: 20px; width: 100%;" onclick="generateInvite()">Create Single-Use Code</button>
+                    
+                    <div id="inviteResult" style="display: none; margin-top: 20px; background: #f0f9ff; padding: 15px; border-radius: 10px; border: 1px solid #bae6fd;">
+                        <p style="font-size: 0.8em; font-weight: bold; color: #0369a1; margin-bottom: 5px;">INVITE CODE:</p>
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <input type="text" id="newCodeDisplay" style="flex: 1; padding: 10px; border: 1px solid #7dd3fc; border-radius: 6px; font-family: monospace; font-size: 1.2em; text-align: center; font-weight: bold;" readonly>
+                            <button onclick="copyToClipboard('newCodeDisplay')" style="padding: 0 15px; background: #0369a1; color: white; border: none; border-radius: 6px; cursor: pointer;">Copy</button>
+                        </div>
+                        <p style="font-size: 0.8em; font-weight: bold; color: #0369a1; margin-bottom: 5px;">DIRECT LINK:</p>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="newLinkDisplay" style="flex: 1; padding: 10px; border: 1px solid #7dd3fc; border-radius: 6px; font-size: 0.85em;" readonly>
+                            <button onclick="copyToClipboard('newLinkDisplay')" style="padding: 0 15px; background: #0369a1; color: white; border: none; border-radius: 6px; cursor: pointer;">Copy</button>
+                        </div>
+                    </div>
+				</div>
+
+				<div class="link-card" style="cursor: default;">
+					<h3>Active & Recent Invites</h3>
+					<div id="invitesContainer" class="invite-list">
+                        <div style="padding: 40px; text-align: center; color: #94a3b8;">Loading invites...</div>
+                    </div>
+				</div>
+			</div>
+
+            <!-- Employee List Section -->
+            <section class="transactions" style="margin-top: 40px;">
+                <div class="transactions-header">
+                    <h2 class="transactions-title">Employee Management</h2>
+                </div>
+                <table class="transactions-table" id="employeesTable">
+                    <thead>
+                        <tr>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesContainer">
+                        <tr><td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;">Loading employees...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+			<footer class="app-footer">
+				<p>&copy; 2026 Clarity - Admin Panel <span class="footer-version"></span></p>
+			</footer>
+		</main>
+	</div>
+
+    <!-- Admin Context Menu (Employees) -->
+    <div id="adminContextMenu" class="context-menu">
+        <ul class="context-menu-list">
+            <li id="amMakeAdmin">Promote to Admin</li>
+            <li id="amMakeUser">Demote to User</li>
+            <li id="amRemove" class="delete-opt">Remove User</li>
+        </ul>
+    </div>
+
+    <!-- Invite Context Menu -->
+    <div id="inviteContextMenu" class="context-menu">
+        <ul class="context-menu-list">
+            <li id="imCopyCode">Copy Code</li>
+            <li id="imCopyLink">Copy Invite Link</li>
+            <li id="imRevoke" class="delete-opt">Revoke Invite</li>
+        </ul>
+    </div>
+
+	<script src="../static/js/dashboard.js"></script>
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('clarityUser'));
+        let selectedUserId = null;
+        let selectedInviteCode = null;
+
+        // --- INVITE LOGIC ---
+        async function loadInvites() {
+            const container = document.getElementById('invitesContainer');
+            try {
+                const res = await fetch(`/api/invites?company_id=${currentUser.company_id}`);
+                const data = await res.json();
+                
+                if (!data.invites || data.invites.length === 0) {
+                    container.innerHTML = '<div style="padding: 40px; text-align: center; color: #94a3b8;">No invites generated yet.</div>';
+                    return;
+                }
+
+                const now = new Date();
+                container.innerHTML = data.invites.map(inv => {
+                    const isExpired = inv.expires_at && new Date(inv.expires_at) < now;
+                    let statusHtml = '';
+                    let actionHtml = '';
+
+                    if (inv.used) {
+                        statusHtml = '<span class="status-badge status-used">Used / Revoked</span>';
+                    } else if (isExpired) {
+                        statusHtml = '<span class="status-badge status-expired">Expired</span>';
+                    } else {
+                        statusHtml = '<span class="status-badge status-active">Active</span>';
+                        actionHtml = `
+                            <button class="btn-icon" onclick="showInviteMenu(event, '${inv.code}')" title="Manage Invite">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                            </button>`;
+                    }
+
+                    const expiryText = inv.expires_at ? new Date(inv.expires_at).toLocaleDateString() : 'Never';
+
+                    return `
+                        <div class="invite-item invite-row" data-code="${inv.code}">
+                            <div>
+                                <div class="code-pill">${inv.code}</div>
+                                <div style="font-size: 0.7em; color: #94a3b8; margin-top: 4px;">Expires: ${expiryText}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                ${statusHtml}
+                                ${actionHtml}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Context Menu for Invites
+                document.querySelectorAll('.invite-row').forEach(row => {
+                    row.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        showInviteMenu(e, row.dataset.code);
+                    });
+                });
+
+            } catch (err) {
+                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #dc2626;">Error loading invites.</div>';
+            }
+        }
+
+        const inviteMenu = document.getElementById('inviteContextMenu');
+        function showInviteMenu(e, code) {
+            selectedInviteCode = code;
+            inviteMenu.style.display = 'block';
+            
+            // Fixed position requires clientX/Y
+            let x = e.clientX;
+            let y = e.clientY;
+
+            // Collision detection
+            if (x + 160 > window.innerWidth) x -= 160;
+            if (y + 120 > window.innerHeight) y -= 120;
+
+            inviteMenu.style.left = x + 'px';
+            inviteMenu.style.top = y + 'px';
+            
+            setTimeout(() => {
+                const closeInviteMenu = () => { inviteMenu.style.display = 'none'; window.removeEventListener('click', closeInviteMenu); };
+                window.addEventListener('click', closeInviteMenu);
+            }, 10);
+        }
+
+        document.getElementById('imCopyCode').onclick = () => {
+            navigator.clipboard.writeText(selectedInviteCode);
+            alert("Code copied!");
+        };
+
+        document.getElementById('imCopyLink').onclick = () => {
+            const baseUrl = window.location.origin;
+            const inviteUrl = `${baseUrl}/templates/signup.html?invite_code=${selectedInviteCode}`;
+            navigator.clipboard.writeText(inviteUrl);
+            alert("Link copied!");
+        };
+
+        document.getElementById('imRevoke').onclick = () => cancelInvite(selectedInviteCode);
+
+        async function generateInvite() {
+            const hours = document.getElementById('inviteExpiry').value;
+            try {
+                const res = await fetch('/api/invites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        company_id: currentUser.company_id, 
+                        expires_in_hours: hours === "0" ? null : hours 
+                    })
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                const baseUrl = window.location.origin;
+                const inviteUrl = `${baseUrl}/templates/signup.html?invite_code=${data.code}`;
+
+                document.getElementById('inviteResult').style.display = 'block';
+                document.getElementById('newCodeDisplay').value = data.code;
+                document.getElementById('newLinkDisplay').value = inviteUrl;
+                
+                // Copy link by default
+                copyToClipboard('newLinkDisplay');
+                
+                alert("Invite code generated! Link copied to clipboard.");
+                loadInvites();
+            } catch (err) {
+                alert("Failed: " + err.message);
+            }
+        }
+
+        function copyToClipboard(id) {
+            const el = document.getElementById(id);
+            el.select();
+            document.execCommand('copy');
+        }
+
+        async function cancelInvite(code) {
+            if (!confirm("Are you sure you want to revoke this invite? It will no longer be usable.")) return;
+            try {
+                const res = await fetch('/api/invites/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, company_id: currentUser.company_id })
+                });
+                if (res.ok) loadInvites();
+            } catch (err) {
+                alert("Revoke failed.");
+            }
+        }
+
+        // --- EMPLOYEE LOGIC ---
+        async function loadEmployees() {
+            const container = document.getElementById('employeesContainer');
+            try {
+                const res = await fetch(`/api/users?company_id=${currentUser.company_id}`);
+                const data = await res.json();
+                
+                if (!data.users || data.users.length === 0) {
+                    container.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No employees found.</td></tr>';
+                    return;
+                }
+
+                container.innerHTML = data.users.map(u => `
+                    <tr data-id="${u.id}" class="employee-row">
+                        <td style="font-weight: 600;">${u.full_name} ${u.id === currentUser.id ? '(You)' : ''}</td>
+                        <td>${u.email}</td>
+                        <td><span class="status-badge ${u.role === 'admin' ? 'status-active' : 'status-used'}">${u.role.toUpperCase()}</span></td>
+                        <td>
+                            ${u.id !== currentUser.id ? `<button class="btn-cancel" onclick="showEmployeeMenu(event, ${u.id})">Manage</button>` : '-'}
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Context Menu Right Click
+                document.querySelectorAll('.employee-row').forEach(row => {
+                    if (parseInt(row.dataset.id) === currentUser.id) return;
+                    row.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        showEmployeeMenu(e, row.dataset.id);
+                    });
+                });
+
+            } catch (err) {
+                container.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #dc2626;">Error loading employees.</td></tr>';
+            }
+        }
+
+        const adminMenu = document.getElementById('adminContextMenu');
+        
+        function showEmployeeMenu(e, id) {
+            selectedUserId = parseInt(id);
+            adminMenu.style.display = 'block';
+            
+            let x = e.clientX;
+            let y = e.clientY;
+
+            // Collision detection
+            if (x + 160 > window.innerWidth) x -= 160;
+            if (y + 120 > window.innerHeight) y -= 120;
+
+            adminMenu.style.left = x + 'px';
+            adminMenu.style.top = y + 'px';
+            
+            // Close menu on click elsewhere
+            setTimeout(() => {
+                const closeMenu = () => { adminMenu.style.display = 'none'; window.removeEventListener('click', closeMenu); };
+                window.addEventListener('click', closeMenu);
+            }, 10);
+        }
+
+        document.getElementById('amMakeAdmin').onclick = () => updateUserRole('admin');
+        document.getElementById('amMakeUser').onclick = () => updateUserRole('user');
+        document.getElementById('amRemove').onclick = async () => {
+            if (!confirm("Are you sure? This employee will lose all access immediately.")) return;
+            try {
+                const res = await fetch(`/api/users/${selectedUserId}`, { method: 'DELETE' });
+                if (res.ok) loadEmployees();
+            } catch(e) { alert("Action failed."); }
+        };
+
+        async function updateUserRole(newRole) {
+            try {
+                const res = await fetch(`/api/users/${selectedUserId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: newRole })
+                });
+                if (res.ok) loadEmployees();
+            } catch(e) { alert("Action failed."); }
+        }
+
+        // Initial load
+        loadInvites();
+        loadEmployees();
+    </script>
+</body>
+</html>
