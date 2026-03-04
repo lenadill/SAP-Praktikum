@@ -244,7 +244,13 @@
             fetch(`/api/config?user_id=${currentUser.id}&company_id=${currentUser.company_id}`)
                 .then(res => res.json())
                 .then(config => {
-                    if (config.nickname) document.getElementById('jouleNickname').value = config.nickname;
+                    const nicknameInput = document.getElementById('jouleNickname');
+                    if (config.nickname) {
+                        nicknameInput.value = config.nickname;
+                    } else if (currentUser.full_name) {
+                        // Default to first name if nothing set
+                        nicknameInput.value = currentUser.full_name.split(' ')[0];
+                    }
                 });
         }
 

@@ -207,9 +207,11 @@
 
                 const now = new Date();
                 container.innerHTML = data.invites.map(inv => {
-                    const isExpired = inv.expires_at && new Date(inv.expires_at) < now;
+                    const expiryDate = inv.expires_at ? new Date(inv.expires_at) : null;
+                    const isExpired = expiryDate && expiryDate < now;
                     let statusHtml = '';
                     let actionHtml = '';
+                    let showManage = false;
 
                     if (inv.used) {
                         statusHtml = '<span class="status-badge status-used">Used / Revoked</span>';
@@ -217,16 +219,17 @@
                         statusHtml = '<span class="status-badge status-expired">Expired</span>';
                     } else {
                         statusHtml = '<span class="status-badge status-active">Active</span>';
+                        showManage = true;
                         actionHtml = `
                             <button class="btn-icon" onclick="showInviteMenu(event, '${inv.code}')" title="Manage Invite">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                             </button>`;
                     }
 
-                    const expiryText = inv.expires_at ? new Date(inv.expires_at).toLocaleDateString() : 'Never';
+                    const expiryText = expiryDate ? expiryDate.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Never';
 
                     return `
-                        <div class="invite-item invite-row" data-code="${inv.code}">
+                        <div class="invite-item invite-row" data-code="${inv.code}" data-manage="${showManage}">
                             <div>
                                 <div class="code-pill">${inv.code}</div>
                                 <div style="font-size: 0.7em; color: #94a3b8; margin-top: 4px;">Expires: ${expiryText}</div>
@@ -241,10 +244,12 @@
 
                 // Context Menu for Invites
                 document.querySelectorAll('.invite-row').forEach(row => {
-                    row.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        showInviteMenu(e, row.dataset.code);
-                    });
+                    if (row.dataset.manage === "true") {
+                        row.addEventListener('contextmenu', (e) => {
+                            e.preventDefault();
+                            showInviteMenu(e, row.dataset.code);
+                        });
+                    }
                 });
 
             } catch (err) {
