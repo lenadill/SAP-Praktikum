@@ -51,6 +51,7 @@ app.get('/login', (req, res) => sendTemplate(res, 'login.html'));
 app.get('/signup', (req, res) => sendTemplate(res, 'signup.html'));
 app.get('/register-company', (req, res) => sendTemplate(res, 'register-company.html'));
 app.get('/dashboard', (req, res) => sendTemplate(res, 'dashboard.html'));
+app.get('/insights', (req, res) => sendTemplate(res, 'insights.html'));
 app.get('/settings', (req, res) => sendTemplate(res, 'settings.html'));
 app.get('/support', (req, res) => sendTemplate(res, 'support.html'));
 app.get('/admin', (req, res) => sendTemplate(res, 'admin.html'));

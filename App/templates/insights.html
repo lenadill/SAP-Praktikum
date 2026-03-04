@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Insights - Clarity</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="icon" type="image/png" href="../assets/pictures/favicon.png">
+</head>
+<body class="dashboard-page">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="../assets/pictures/clarity_logo.png" alt="Clarity" class="sidebar-logo">
+            </div>
+            <nav>
+                <ul class="menu">
+                    <li class="menu-item">
+                        <a href="/">
+                            <span class="menu-icon"></span>
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/dashboard">
+                            <span class="menu-icon"></span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="menu-item active">
+                        <a href="/insights">
+                            <span class="menu-icon"></span>
+                            <span>Financial Insights</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/settings">
+                            <span class="menu-icon"></span>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/support">
+                            <span class="menu-icon"></span>
+                            <span>Support</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/logout" class="logout-btn">Log Out</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <h1>Financial Insights</h1>
+                    <span id="app-version" class="version-tag">...</span>
+                </div>
+                <div class="header-right">
+                    <a href="/settings" class="header-profile-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6f42c1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span class="name-text">Profile</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Insights Section -->
+            <section class="insights-area" style="padding: 24px;">
+                <div class="insights-header" style="margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.75rem; color: #1e293b; margin-bottom: 0.5rem;">AI-Powered Financial Analysis</h2>
+                    <p style="color: #64748b;">Clair analyzes your transactions to find recurring costs and spending patterns.</p>
+                </div>
+
+                <div class="insights-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
+                    <!-- Subscriptions Card -->
+                    <div class="insight-card" id="subscriptions-insight" style="background: white; padding: 2rem; border-radius: 1.25rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                        <h3 style="font-size: 1.125rem; font-weight: 700; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="background: #e0e7ff; color: #4f46e5; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            </div>
+                            Detected Subscriptions
+                        </h3>
+                        <div id="subscriptions-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <p style="font-size: 0.875rem; color: #94a3b8; font-style: italic;">Analyzing your transactions...</p>
+                        </div>
+                    </div>
+
+                    <!-- Trends Card -->
+                    <div class="insight-card" id="trends-insight" style="background: white; padding: 2rem; border-radius: 1.25rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                        <h3 style="font-size: 1.125rem; font-weight: 700; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="background: #fef3c7; color: #d97706; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                            </div>
+                            Spending Trends
+                        </h3>
+                        <div id="trends-content" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <p style="font-size: 0.875rem; color: #94a3b8; font-style: italic;">Identifying trends...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Future Savings Potential (Placeholder for completeness) -->
+                <div class="savings-potential" style="margin-top: 2rem; background: linear-gradient(135deg, #6f42c1 0%, #4f46e5 100%); padding: 2rem; border-radius: 1.25rem; color: white;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="background: rgba(255,255,255,0.2); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">💡</div>
+                        <h3 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Forecast Summary</h3>
+                    </div>
+                    <p style="opacity: 0.9; margin-bottom: 0;">Based on your current trends, Clair expects your surplus to stabilize. Your category-based analysis shows consistent patterns in "Food" and "Transport".</p>
+                </div>
+            </section>
+
+            <footer class="app-footer">
+                <p>&copy; 2026 Clarity - An Intelligent Financial Tracker <span class="footer-version"></span></p>
+                <div class="footer-links">
+                	<a href="/tos">Terms of Service</a>
+                	<a href="/impressum">Impressum</a>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- AI Chat Toggle Button -->
+    <button class="diamond-btn" title="Open AI Assistant" aria-label="Open AI Chat">
+        <img src="../assets/icons/joule_logo.png" alt="AI Assistant">
+    </button>
+
+    <script src="../static/js/dashboard.js"></script>
+    <script src="../static/js/ai-chat.js"></script>
+    <script src="../static/js/data-manager.js"></script>
+    <script src="/static/js/forecast-engine.js"></script>
+    <script src="/static/js/insights-view.js"></script>
+</body>
+</html>

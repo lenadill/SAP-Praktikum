@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.5] - 2026-03-04
+### Added
+- **Neuer Sidebar-Tab:** "Financial Insights" hat nun einen dedizierten Bereich in der Navigation erhalten.
+- **Insights-Seite:** Neue dedizierte Ansicht (`insights.html`) für die detaillierte Darstellung von erkannten Abonnements und Ausgabentrends.
+### Changed
+- **Dashboard-Bereinigung:** Die Insights-Sektion wurde vom Dashboard entfernt, um die Übersichtlichkeit der Kernmetriken zu wahren.
+
 ## [1.1.4] - 2026-03-04
 ### Added
 - **Präzisions-Forecast:** Umstellung auf kategoriebasierte Trendanalyse für genauere Vorhersagen pro Ausgabentyp.

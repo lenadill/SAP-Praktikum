@@ -1,6 +1,6 @@
 {
   "name": "clarity-financial-tracker",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Minimal proxy for Gemini / Generative Language API",
   "main": "server.js",
   "scripts": {
