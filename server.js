@@ -4,6 +4,7 @@ const path    = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const fs      = require('fs');
 const crypto  = require('crypto');
+const bcrypt  = require('bcryptjs');
 const app = express();
 
 const APP_DIR = path.join(__dirname, 'App');
@@ -93,29 +94,37 @@ app.post('/api/companies', (req, res) => {
     });
 });
 
-app.post('/api/users/signup', (req, res) => {
+app.post('/api/users/signup', async (req, res) => {
     const { full_name, email, password, company_id, role, invite_code } = req.body;
     const cDb = getCompanyDb(company_id);
 
-    const completeSignup = () => {
-        cDb.run("INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)", 
-            [full_name, email, password, role || 'user'], function(err) {
-            if (err) return res.status(400).json({ error: "Email already taken in this company." });
-            const userId = this.lastID;
-            // Add to global index
-            sysDb.run("INSERT INTO user_index (email, company_id) VALUES (?, ?)", [email, company_id]);
-            res.json({ success: true, user_id: userId });
-        });
-    };
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (role === 'user') {
-        cDb.get("SELECT * FROM invites WHERE code = ? AND used = 0", [invite_code], (err, inv) => {
-            if (err || !inv) return res.status(400).json({ error: "Invalid invite code." });
-            cDb.run("UPDATE invites SET used = 1 WHERE code = ?", [invite_code]);
+        const completeSignup = () => {
+            cDb.run("INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)", 
+                [full_name, email, hashedPassword, role || 'user'], function(err) {
+                if (err) return res.status(400).json({ error: "Email already taken in this company." });
+                const userId = this.lastID;
+                // Add to global index
+                sysDb.run("INSERT INTO user_index (email, company_id) VALUES (?, ?)", [email, company_id], (err) => {
+                    if (err) return res.status(500).json({ error: "Indexing failed." });
+                    res.json({ success: true, user_id: userId });
+                });
+            });
+        };
+
+        if (role === 'user') {
+            cDb.get("SELECT * FROM invites WHERE code = ? AND used = 0", [invite_code], (err, inv) => {
+                if (err || !inv) return res.status(400).json({ error: "Invalid invite code." });
+                cDb.run("UPDATE invites SET used = 1 WHERE code = ?", [invite_code]);
+                completeSignup();
+            });
+        } else {
             completeSignup();
-        });
-    } else {
-        completeSignup();
+        }
+    } catch (e) {
+        res.status(500).json({ error: "Hashing failed." });
     }
 });
 
@@ -123,11 +132,28 @@ app.post('/api/users/login', (req, res) => {
     const { email, password } = req.body;
     sysDb.get("SELECT company_id FROM user_index WHERE email = ?", [email], (err, index) => {
         if (err || !index) return res.status(401).json({ error: "Invalid credentials." });
+        
         const cDb = getCompanyDb(index.company_id);
-        cDb.get("SELECT users.*, companies.name as company_name FROM users CROSS JOIN (SELECT name FROM companies WHERE id = ?) as companies WHERE email = ? AND password = ?", 
-            [index.company_id, email, password], (err, row) => {
+        cDb.get("SELECT * FROM users WHERE email = ?", [email], async (err, row) => {
             if (err || !row) return res.status(401).json({ error: "Invalid credentials." });
-            res.json({ success: true, user: { ...row, company_id: index.company_id } });
+            
+            const match = await bcrypt.compare(password, row.password);
+            if (!match) return res.status(401).json({ error: "Invalid credentials." });
+            
+            // Get company info separately from sysDb
+            sysDb.get("SELECT name FROM companies WHERE id = ?", [index.company_id], (err, comp) => {
+                res.json({ 
+                    success: true, 
+                    user: { 
+                        id: row.id, 
+                        full_name: row.full_name, 
+                        email: row.email, 
+                        role: row.role, 
+                        company_id: index.company_id,
+                        company_name: comp ? comp.name : "Organization"
+                    } 
+                });
+            });
         });
     });
 });
@@ -146,42 +172,42 @@ app.post('/api/invites', (req, res) => {
     });
 });
 
-app.get('/api/invites/validate', (req, res) => {
-    const { code } = req.query;
-    sysDb.get("SELECT company_id FROM user_index WHERE email IS NULL", [], (err) => { // Dummy query to keep sysDb busy if needed
-        // We actually need to find WHICH company this code belongs to. 
-        // For simplicity, we can't easily JOIN across files in SQLite without ATTACH.
-        // Let's assume the client might know or we have to search (slow) or use a better index.
-        // FIX: Let's put invites back in system.db or require company hint.
-        // PROPER FIX: Search all active company DBs or keep a global invite index.
-        // For now, let's keep invites in system.db for easy cross-company validation.
+app.get('/api/invites', (req, res) => {
+    const { company_id } = req.query;
+    const cDb = getCompanyDb(company_id);
+    cDb.all("SELECT * FROM invites ORDER BY id DESC", [], (err, rows) => {
+        res.json({ invites: rows || [] });
     });
 });
 
-// RE-FIX: I'll move invites and users back to system.db but isolated by company_id,
-// while TRANSACTIONS and SETTINGS go to company_<id>.db. This is the best trade-off.
-// BUT the user said "everything in own comp db". Okay, then let's require company_id for validation.
+app.post('/api/invites/cancel', (req, res) => {
+    const { code, company_id } = req.body;
+    const cDb = getCompanyDb(company_id);
+    cDb.run("UPDATE invites SET used = 1 WHERE code = ?", [code], (err) => {
+        res.json({ success: true });
+    });
+});
 
 app.get('/api/invites/validate', (req, res) => {
     const { code } = req.query;
-    // We search all company databases for this code (In a real app, use a global index)
     const files = fs.readdirSync(path.join(APP_DIR, 'db')).filter(f => f.startsWith('company_'));
+    let processed = 0;
     let found = false;
-    let count = 0;
-    if (files.length === 0) return res.status(404).json({error: "No companies."});
+
+    if (files.length === 0) return res.status(404).json({ error: "No companies." });
 
     files.forEach(file => {
         const compId = file.match(/\d+/)[0];
         const cDb = getCompanyDb(compId);
         cDb.get("SELECT * FROM invites WHERE code = ? AND used = 0", [code], (err, row) => {
-            count++;
+            processed++;
             if (row && !found) {
                 found = true;
                 sysDb.get("SELECT * FROM companies WHERE id = ?", [compId], (err, comp) => {
                     res.json({ success: true, invite: { ...row, company_id: compId, company_name: comp.name, company_domain: comp.domain } });
                 });
-            } else if (count === files.length && !found) {
-                res.status(404).json({ error: "Invalid code." });
+            } else if (processed === files.length && !found) {
+                res.status(404).json({ error: "Invalid invite code." });
             }
         });
     });
@@ -194,52 +220,35 @@ app.get('/api/users', (req, res) => {
     if (!company_id) return res.status(400).json({ error: "Company ID required" });
     const cDb = getCompanyDb(company_id);
     cDb.all("SELECT id, full_name, email, role FROM users", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: "Failed to fetch users" });
-        res.json({ users: rows });
+        res.json({ users: rows || [] });
     });
 });
 
 app.put('/api/users/:id', (req, res) => {
     const { company_id, role } = req.body;
-    if (!company_id) return res.status(400).json({ error: "Company ID required" });
     const cDb = getCompanyDb(company_id);
-    cDb.run("UPDATE users SET role = ? WHERE id = ?", [role, req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: "Failed to update user" });
-        res.json({ success: true });
-    });
+    cDb.run("UPDATE users SET role = ? WHERE id = ?", [role, req.params.id], () => res.json({ success: true }));
 });
 
 app.delete('/api/users/:id', (req, res) => {
     const { company_id } = req.query;
-    if (!company_id) return res.status(400).json({ error: "Company ID required." });
-    
     const cDb = getCompanyDb(company_id);
     const userId = req.params.id;
 
-    // Security check: Don't allow deleting the last admin
     cDb.get("SELECT role, email FROM users WHERE id = ?", [userId], (err, user) => {
-        if (err || !user) return res.status(404).json({ error: "User not found." });
-
+        if (!user) return res.status(404).json({ error: "Not found." });
         if (user.role === 'admin') {
-            cDb.get("SELECT COUNT(*) as adminCount FROM users WHERE role = 'admin'", [], (err, row) => {
-                if (err) return res.status(500).json({ error: "DB Error" });
-                if (row.adminCount <= 1) {
-                    return res.status(403).json({ 
-                        error: "last_admin", 
-                        message: "You are the last administrator. Please promote another employee to Admin before deleting your account." 
-                    });
-                }
-                performDeletion(user.email);
+            cDb.get("SELECT COUNT(*) as cnt FROM users WHERE role = 'admin'", (err, row) => {
+                if (row.cnt <= 1) return res.status(403).json({ error: "last_admin", message: "Cannot delete last admin." });
+                deleteUser(user.email);
             });
         } else {
-            performDeletion(user.email);
+            deleteUser(user.email);
         }
     });
 
-    function performDeletion(email) {
-        cDb.run("DELETE FROM users WHERE id = ?", [userId], function(err) {
-            if (err) return res.status(500).json({ error: "Failed." });
-            // Clean up index and settings
+    function deleteUser(email) {
+        cDb.run("DELETE FROM users WHERE id = ?", [userId], () => {
             sysDb.run("DELETE FROM user_index WHERE email = ?", [email]);
             cDb.run("DELETE FROM user_settings WHERE user_id = ?", [userId]);
             res.json({ success: true });
@@ -262,21 +271,16 @@ app.post('/api/config', (req, res) => {
     const { user_id, company_id, nickname } = req.body;
     const cDb = getCompanyDb(company_id);
     cDb.run("INSERT INTO user_settings (user_id, nickname) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET nickname=excluded.nickname",
-        [user_id, nickname], (err) => {
-        res.json({ success: true });
-    });
+        [user_id, nickname], () => res.json({ success: true }));
 });
 
 // --- Transactions API ---
 
 app.get("/api/transactions", (req, res) => {
     const { company_id, user_id, limit=25, offset=0 } = req.query;
-    if (!company_id) return res.status(400).json({ error: "Required." });
     const cDb = getCompanyDb(company_id);
     cDb.all("SELECT * FROM transactions WHERE user_id = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?", 
-        [user_id, parseInt(limit), parseInt(offset)], (err, rows) => {
-        res.json({ eintraege: rows || [] });
-    });
+        [user_id, parseInt(limit), parseInt(offset)], (err, rows) => res.json({ eintraege: rows || [] }));
 });
 
 app.post('/api/transactions', (req, res) => {
@@ -284,7 +288,7 @@ app.post('/api/transactions', (req, res) => {
     const cDb = getCompanyDb(company_id);
     cDb.run("INSERT INTO transactions (id, name, kategorie, wert, timestamp, sender, empfaenger, user_id) VALUES (?,?,?,?,?,?,?,?)",
         [Date.now(), name, kategorie, parseFloat(wert), new Date().toISOString(), sender, empfaenger, user_id],
-        (err) => res.json({ success: true }));
+        () => res.json({ success: true }));
 });
 
 // --- Joule Chat API ---
@@ -292,15 +296,10 @@ app.post('/api/transactions', (req, res) => {
 app.post('/api/chat', async (req, res) => {
     const { company_id, user_id, messages } = req.body;
     const cDb = getCompanyDb(company_id);
-    
-    // Get nickname
-    cDb.get("SELECT nickname FROM user_settings WHERE user_id = ?", [user_id], async (err, setting) => {
+    cDb.get("SELECT nickname FROM user_settings WHERE user_id = ?", [user_id], (err, setting) => {
         const nickname = setting?.nickname || "User";
-        // Get summary from transactions
         cDb.all("SELECT * FROM transactions WHERE user_id = ? ORDER BY timestamp DESC LIMIT 10", [user_id], async (err, rows) => {
-            let summary = "No data.";
-            if (rows?.length > 0) summary = rows.map(r => `${r.name}: ${r.wert}€`).join(", ");
-            
+            const summary = rows?.length > 0 ? rows.map(r => `${r.name}: ${r.wert}€`).join(", ") : "No data.";
             const systemPrompt = `You are Joule. Addressing user as ${nickname}. Context: ${summary}`;
             const resp = await fetchFn("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
